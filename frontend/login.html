@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Masuk — Womenspace 🌸</title>
+<link rel="stylesheet" href="style.css"/>
+<style>
+  body { display:flex; min-height:100vh; }
+
+  .auth-split { display:flex; width:100%; min-height:100vh; }
+
+  /* ── Brand panel ── */
+  .auth-brand {
+    flex: 0 0 44%;
+    background: linear-gradient(145deg, #C8738A 0%, #E8A0B0 55%, #F5C6D3 100%);
+    position: relative; overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .brand-blob-1 {
+    position:absolute; width:420px; height:420px;
+    background:rgba(255,255,255,.1); border-radius:60% 40% 70% 30%;
+    top:-80px; left:-100px; animation:blobFloat 9s ease-in-out infinite;
+  }
+  .brand-blob-2 {
+    position:absolute; width:300px; height:300px;
+    background:rgba(255,255,255,.08); border-radius:40% 70% 30% 60%;
+    bottom:-60px; right:-60px; animation:blobFloat 12s ease-in-out infinite reverse;
+  }
+  @keyframes blobFloat {
+    0%,100% { transform:translate(0,0) rotate(0deg); }
+    33%      { transform:translate(20px,15px) rotate(6deg); }
+    66%      { transform:translate(-15px,20px) rotate(-4deg); }
+  }
+  .brand-content { position:relative; z-index:2; text-align:center; color:#fff; padding:48px; }
+  .brand-mark { font-size:5rem; display:inline-block; animation:spin 20s linear infinite; margin-bottom:20px; }
+  .brand-title { font-family:var(--font-display); font-size:3.2rem; font-weight:900; margin-bottom:14px; letter-spacing:-.02em; text-shadow:0 2px 20px rgba(0,0,0,.12); }
+  .brand-sub { font-size:1.05rem; line-height:1.75; opacity:.9; max-width:300px; margin:0 auto 36px; }
+  .brand-features { display:flex; flex-direction:column; gap:10px; text-align:left; }
+  .brand-feature { display:flex; align-items:center; gap:10px; font-size:.92rem; opacity:.88; }
+  .brand-feature-icon { width:28px; height:28px; border-radius:8px; background:rgba(255,255,255,.2); display:flex; align-items:center; justify-content:center; font-size:.85rem; flex-shrink:0; }
+
+  /* ── Form panel ── */
+  .auth-form-panel {
+    flex:1; display:flex; flex-direction:column;
+    justify-content:center; padding:56px 64px;
+    background:var(--cream); overflow-y:auto;
+  }
+  .auth-header { margin-bottom:36px; }
+  .auth-header h2 { font-family:var(--font-display); font-size:2rem; font-weight:700; color:var(--text); margin-bottom:8px; }
+  .auth-header p { color:var(--text-muted); font-size:.97rem; }
+
+  .auth-footer { margin-top:24px; text-align:center; font-size:.9rem; color:var(--text-muted); }
+  .auth-footer a { color:var(--rose); font-weight:600; }
+
+  .divider { display:flex; align-items:center; gap:12px; color:var(--text-light); font-size:.82rem; margin:22px 0; }
+  .divider::before, .divider::after { content:''; flex:1; height:1px; background:var(--border); }
+
+  .input-wrap { position:relative; }
+  .input-wrap input { padding-left:42px; }
+  .input-icon { position:absolute; left:14px; top:50%; transform:translateY(-50%); font-size:1rem; color:var(--text-light); pointer-events:none; }
+  .input-wrap .toggle-pw { position:absolute; right:14px; top:50%; transform:translateY(-50%); cursor:pointer; font-size:1rem; color:var(--text-light); pointer-events:all; }
+
+  @media (max-width:768px) {
+    .auth-split { flex-direction:column; }
+    .auth-brand { flex:0 0 200px; }
+    .auth-form-panel { padding:32px 24px; }
+    .brand-title { font-size:2rem; }
+    .brand-features { display:none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="auth-split">
+  <!-- Brand -->
+  <div class="auth-brand">
+    <div class="brand-blob-1"></div>
+    <div class="brand-blob-2"></div>
+    <div class="brand-content">
+      <div class="brand-mark">✿</div>
+      <h1 class="brand-title">Womenspace</h1>
+      <p class="brand-sub">Ruang aman untuk suara perempuan. Berbagi, terhubung, dan berkarya bersama.</p>
+      <div class="brand-features">
+        <div class="brand-feature"><div class="brand-feature-icon">🔒</div> Khusus & aman untuk perempuan</div>
+        <div class="brand-feature"><div class="brand-feature-icon">🌸</div> Forum, cerita & diskusi bebas</div>
+        <div class="brand-feature"><div class="brand-feature-icon">💬</div> Konsultasi dengan psikolog</div>
+        <div class="brand-feature"><div class="brand-feature-icon">👤</div> Mode anonim tersedia</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Form -->
+  <div class="auth-form-panel">
+    <div class="auth-header">
+      <h2>Selamat datang kembali 🌸</h2>
+      <p>Masuk ke akun Womenspace kamu</p>
+    </div>
+
+    <div class="field-group">
+      <label>Username</label>
+      <div class="input-wrap">
+        <span class="input-icon">👤</span>
+        <input type="text" id="username" placeholder="username kamu" autocomplete="username"/>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <label>Password</label>
+      <div class="input-wrap">
+        <span class="input-icon">🔑</span>
+        <input type="password" id="password" placeholder="••••••••" autocomplete="current-password"/>
+        <span class="toggle-pw" id="toggle-pw">👁️</span>
+      </div>
+    </div>
+
+    <div id="login-error" class="form-error hidden"></div>
+
+    <button class="btn btn-primary btn-full btn-lg" id="btn-login">Masuk →</button>
+
+    <div class="divider">atau</div>
+
+    <div class="auth-footer">
+      Belum punya akun? <a href="/register.html">Daftar sekarang</a>
+    </div>
+  </div>
+</div>
+
+<script src="js/api.js"></script>
+<script>
+  // Redirect kalau sudah login
+  redirectIfLoggedIn();
+
+  // Toggle password visibility
+  document.getElementById("toggle-pw").addEventListener("click", () => {
+    const inp = document.getElementById("password");
+    inp.type  = inp.type === "password" ? "text" : "password";
+  });
+
+  // Login
+  async function doLogin() {
+    clearError("login-error");
+    const username = document.getElementById("username").value.trim();
+    const password = document.getElementById("password").value;
+    if (!username || !password) { showError("login-error", "Username dan password wajib diisi."); return; }
+
+    const btn = document.getElementById("btn-login");
+    btn.disabled = true; btn.textContent = "⏳ Masuk...";
+
+    try {
+      const { ok, data } = await api("/auth/login", {
+        method: "POST", body: JSON.stringify({ username, password })
+      });
+      if (!ok) { showError("login-error", data.error || "Username atau password salah."); return; }
+
+      Auth.setToken(data.token);
+      Auth.setUser(data.user);
+      window.location.href = "/home.html";
+    } catch {
+      showError("login-error", "Tidak bisa terhubung ke server.");
+    } finally {
+      btn.disabled = false; btn.textContent = "Masuk →";
+    }
+  }
+
+  document.getElementById("btn-login").addEventListener("click", doLogin);
+  ["username","password"].forEach(id => {
+    document.getElementById(id).addEventListener("keydown", e => { if (e.key === "Enter") doLogin(); });
+  });
+</script>
+</body>
+</html>

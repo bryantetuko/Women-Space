@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Beranda — Womenspace 🌸</title>
+<link rel="stylesheet" href="style.css"/>
+<style>
+  .app-header {
+    position:sticky; top:0; z-index:50;
+    background:rgba(253,247,242,.92); backdrop-filter:blur(12px);
+    border-bottom:1.5px solid var(--border);
+    padding:16px 24px; margin:-28px -24px 20px;
+  }
+  .app-header h1 { font-family:var(--font-display); font-size:1.5rem; font-weight:700; }
+
+  /* Story Viewer */
+  .story-viewer {
+    position:fixed; inset:0; z-index:300; background:rgba(0,0,0,.92);
+    display:flex; align-items:center; justify-content:center; flex-direction:column;
+  }
+  .story-viewer-content { position:relative; max-width:400px; width:90%; max-height:90vh; display:flex; flex-direction:column; }
+  .story-viewer-header { display:flex; align-items:center; gap:10px; padding:12px 0; color:#fff; }
+  .story-viewer-close { position:absolute; top:12px; right:0; color:#fff; font-size:1.3rem; cursor:pointer; background:rgba(255,255,255,.15); border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; }
+  .story-viewer-media img, .story-viewer-media video { width:100%; border-radius:var(--radius); max-height:65vh; object-fit:contain; }
+  .story-viewer-caption { color:rgba(255,255,255,.85); font-size:.88rem; padding:8px 0; text-align:center; }
+  .story-progress { display:flex; gap:4px; margin-bottom:8px; }
+  .story-progress-bar { flex:1; height:3px; background:rgba(255,255,255,.3); border-radius:2px; overflow:hidden; }
+  .story-progress-fill { height:100%; background:#fff; animation:storyFill 5s linear forwards; }
+  @keyframes storyFill { from{width:0} to{width:100%} }
+
+  .thread-modal { max-width:600px; }
+  .reply-item { display:flex; gap:10px; padding:12px 0; border-bottom:1px solid var(--border-light); }
+  .reply-item:last-child { border-bottom:none; }
+</style>
+</head>
+<body>
+<div class="app-layout">
+  <div id="navbar-mount"></div>
+  <main class="app-main">
+    <div class="app-header"><h1>Beranda 🌸</h1></div>
+
+    <!-- Story Bar -->
+    <div class="story-bar" id="story-bar">
+      <div class="story-item" id="add-story-btn">
+        <div class="story-ring unseen"><div class="story-inner story-add">＋</div></div>
+        <div class="story-label">Cerita Kamu</div>
+      </div>
+    </div>
+
+    <!-- Compose -->
+    <div class="compose-box">
+      <div class="compose-inner">
+        <div class="avatar avatar-md" id="compose-avatar">✿</div>
+        <div class="compose-right">
+          <textarea class="compose-textarea" id="compose-text" placeholder="Ada yang ingin kamu bagikan hari ini? ✿"></textarea>
+          <div class="compose-footer">
+            <div class="compose-tools">
+              <label class="compose-tool" title="Foto">📷<input type="file" id="compose-img" accept="image/*" hidden/></label>
+              <label class="compose-tool" title="Video">🎬<input type="file" id="compose-vid" accept="video/*" hidden/></label>
+              <label class="compose-tool" title="Pesan suara">🎙️<input type="file" id="compose-aud" accept="audio/*" hidden/></label>
+              <button class="compose-tool" title="Buat Poll" id="btn-open-poll" type="button">📊</button>
+            </div>
+            <span id="media-name" style="font-size:.78rem;color:var(--text-muted);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100px"></span>
+            <label class="anon-toggle"><input type="checkbox" id="compose-anon"/> 👤 Anonim</label>
+            <button class="btn btn-primary btn-sm" id="btn-post">Unggah ✿</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Feed Tabs -->
+    <div class="tabs">
+      <button class="tab-btn active" data-feed="fyp">Untuk Anda</button>
+      <button class="tab-btn" data-feed="following">Mengikuti</button>
+      <div class="tab-indicator" id="tab-bar" style="width:50%;left:0"></div>
+    </div>
+    <div id="feed-container"><div class="feed-loader">🌸 Memuat postingan...</div></div>
+  </main>
+</div>
+
+<!-- ── Poll Modal ── -->
+<div class="modal-overlay hidden" id="poll-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Buat Poll 📊</h3>
+      <button class="modal-close" onclick="document.getElementById('poll-modal').classList.add('hidden')">✕</button>
+    </div>
+    <div class="field-group"><label>Konten postingan</label><textarea id="poll-content" placeholder="Tulis konteks pollmu..." rows="2"></textarea></div>
+    <div class="field-group"><label>Pertanyaan Poll</label><input type="text" id="poll-question" placeholder="Apa yang ingin kamu tanyakan?"/></div>
+    <div class="field-group">
+      <label>Pilihan (min. 2, max. 4)</label>
+      <input type="text" class="poll-opt" placeholder="Pilihan 1" style="margin-bottom:8px"/>
+      <input type="text" class="poll-opt" placeholder="Pilihan 2" style="margin-bottom:8px"/>
+      <input type="text" class="poll-opt" placeholder="Pilihan 3 (opsional)" style="margin-bottom:8px"/>
+      <input type="text" class="poll-opt" placeholder="Pilihan 4 (opsional)"/>
+    </div>
+    <div class="field-group"><label>Durasi Poll</label>
+      <select id="poll-duration">
+        <option value="1">1 jam</option><option value="6">6 jam</option>
+        <option value="24" selected>24 jam</option><option value="72">3 hari</option><option value="168">7 hari</option>
+      </select>
+    </div>
+    <div id="poll-error" class="form-error hidden"></div>
+    <button class="btn btn-primary btn-full" id="btn-submit-poll">Unggah dengan Poll 📊</button>
+  </div>
+</div>
+
+<!-- ── Story Modal ── -->
+<div class="modal-overlay hidden" id="story-modal">
+  <div class="modal">
+    <div class="modal-header"><h3>Buat Cerita ✨</h3><button class="modal-close" id="story-modal-close">✕</button></div>
+    <div style="border:2px dashed var(--rose-light);border-radius:var(--radius);padding:28px;text-align:center;background:var(--blush);cursor:pointer;margin-bottom:14px" onclick="document.getElementById('story-file').click()">
+      <div style="font-size:2rem;margin-bottom:8px">📸</div>
+      <p style="color:var(--text-muted);font-size:.9rem">Klik untuk pilih foto atau video</p>
+      <input type="file" id="story-file" accept="image/*,video/*" hidden/>
+    </div>
+    <div id="story-preview" class="hidden" style="text-align:center;margin-bottom:14px">
+      <img id="story-img-preview" style="max-height:180px;border-radius:var(--radius);margin:0 auto"/>
+    </div>
+    <input type="text" id="story-caption" placeholder="Caption (opsional)..." style="margin-bottom:14px"/>
+    <button class="btn btn-primary btn-full" id="btn-post-story">Unggah Cerita 🌸</button>
+  </div>
+</div>
+
+<!-- ── Story Viewer ── -->
+<div id="story-viewer" class="story-viewer hidden">
+  <div class="story-viewer-content">
+    <div class="story-progress" id="story-progress"></div>
+    <div class="story-viewer-header">
+      <div class="avatar avatar-sm" id="sv-avatar">✿</div>
+      <div style="flex:1">
+        <div style="font-weight:700;font-size:.92rem" id="sv-username"></div>
+        <div style="font-size:.76rem;opacity:.7" id="sv-time"></div>
+      </div>
+      <div class="story-viewer-close" onclick="closeStoryViewer()">✕</div>
+    </div>
+    <div class="story-viewer-media" id="sv-media"></div>
+    <div class="story-viewer-caption" id="sv-caption"></div>
+    <div style="display:flex;justify-content:space-between;margin-top:8px">
+      <button class="btn btn-ghost btn-sm" style="color:#fff;background:rgba(255,255,255,.15)" onclick="prevStory()">← Prev</button>
+      <button class="btn btn-ghost btn-sm" style="color:#fff;background:rgba(255,255,255,.15)" onclick="nextStory()">Next →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Thread / Replies Modal ── -->
+<div class="modal-overlay hidden" id="thread-modal">
+  <div class="modal thread-modal">
+    <div class="modal-header">
+      <h3>Thread 💬</h3>
+      <button class="modal-close" onclick="document.getElementById('thread-modal').classList.add('hidden')">✕</button>
+    </div>
+    <div id="thread-original"></div>
+    <div style="border-top:1px solid var(--border);margin:14px 0;padding-top:14px">
+      <div style="font-weight:700;font-size:.88rem;color:var(--text-muted);margin-bottom:12px">💬 Balasan</div>
+      <div id="thread-replies"></div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:12px;padding-top:12px;border-top:1px solid var(--border-light)">
+      <textarea id="thread-reply-text" placeholder="Tulis balasanmu..." rows="2" style="flex:1;resize:none"></textarea>
+      <button class="btn btn-primary btn-sm" id="btn-thread-reply">Kirim</button>
+    </div>
+    <div id="thread-reply-error" class="form-error hidden"></div>
+  </div>
+</div>
+
+<div id="toast" class="hidden"></div>
+<script src="js/api.js?v=mediafix2"></script>
+<script>
+requireAuth();
+const user = Auth.getUser();
+document.getElementById("navbar-mount").innerHTML = renderNavbar("Beranda");
+
+// Avatar compose
+const compAv = document.getElementById("compose-avatar");
+if (user?.avatar_url) {
+  const src = user.avatar_url.startsWith("http") ? user.avatar_url : `${API_ORIGIN}${user.avatar_url}`;
+  compAv.innerHTML = `<img src="${src}" style="width:100%;height:100%;object-fit:cover;border-radius:50%" onerror="this.parentElement.innerHTML='✿'"/>`;
+}
+
+// ─── FEED ──────────────────────────────────────────
+let currentFeed = "fyp";
+
+document.querySelectorAll(".tab-btn").forEach((btn, i) => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    currentFeed = btn.dataset.feed;
+    document.getElementById("tab-bar").style.left = i === 0 ? "0" : "50%";
+    loadFeed();
+  });
+});
+
+async function loadFeed() {
+  const c = document.getElementById("feed-container");
+  c.innerHTML = `<div class="feed-loader">🌸 Memuat postingan...</div>`;
+  try {
+    const { ok, data } = await api(currentFeed === "following" ? "/posts/following" : "/posts/fyp");
+    if (!ok || !data.posts?.length) {
+      c.innerHTML = `<div class="feed-empty"><div class="feed-empty-icon">🌸</div>
+        <h3>Belum ada postingan</h3>
+        <p>${currentFeed === "following" ? "Ikuti teman untuk melihat Unggahan mereka" : "Jadilah yang pertama posting!"}</p></div>`;
+      return;
+    }
+    c.innerHTML = data.posts.map(p => renderPostCard(p)).join("");
+    attachPostActions(c);
+    c.querySelectorAll(".reply-btn").forEach(btn => {
+      btn.addEventListener("click", () => openThread(btn.dataset.id));
+    });
+  } catch { c.innerHTML = `<div class="feed-loader">Gagal memuat feed. Cek koneksi.</div>`; }
+}
+loadFeed();
+
+// ─── COMPOSE ───────────────────────────────────────
+let composedMedia = null;
+["compose-img","compose-vid","compose-aud"].forEach(id => {
+  document.getElementById(id).addEventListener("change", e => {
+    composedMedia = e.target.files[0] || null;
+    document.getElementById("media-name").textContent = composedMedia?.name || "";
+  });
+});
+
+document.getElementById("btn-post").addEventListener("click", async () => {
+  const text   = document.getElementById("compose-text").value.trim();
+  const isAnon = document.getElementById("compose-anon").checked;
+  if (!text && !composedMedia) { toast("Tulis sesuatu dulu! ✿"); return; }
+  const btn = document.getElementById("btn-post");
+  btn.disabled = true; btn.textContent = "Posting...";
+  const form = new FormData();
+  form.append("content", text);
+  form.append("is_anonymous", isAnon ? "1" : "0");
+  if (composedMedia) form.append("media", composedMedia);
+  try {
+    const { ok, data } = await api("/posts", { method:"POST", body:form });
+    if (!ok) { toast(data.error || "Gagal posting.", "error"); return; }
+    document.getElementById("compose-text").value = "";
+    document.getElementById("media-name").textContent = "";
+    document.getElementById("compose-anon").checked = false;
+    composedMedia = null;
+    toast("🌸 Postingan terkirim!", "success");
+    loadFeed();
+  } finally { btn.disabled = false; btn.textContent = "Post ✿"; }
+});
+
+// ─── POLL ──────────────────────────────────────────
+document.getElementById("btn-open-poll").addEventListener("click", () => {
+  document.getElementById("poll-modal").classList.remove("hidden");
+  clearError("poll-error");
+});
+
+document.getElementById("btn-submit-poll").addEventListener("click", async () => {
+  clearError("poll-error");
+  const content  = document.getElementById("poll-content").value.trim();
+  const question = document.getElementById("poll-question").value.trim();
+  const opts     = [...document.querySelectorAll(".poll-opt")].map(i => i.value.trim()).filter(Boolean);
+  const duration = document.getElementById("poll-duration").value;
+  if (!content)        { showError("poll-error","Tulis konten postingan dulu."); return; }
+  if (!question)       { showError("poll-error","Pertanyaan poll wajib diisi."); return; }
+  if (opts.length < 2) { showError("poll-error","Minimal 2 pilihan."); return; }
+
+  const btn = document.getElementById("btn-submit-poll");
+  btn.disabled = true; btn.textContent = "Memposting...";
+  const form = new FormData();
+  form.append("content", content);
+  form.append("poll_question", question);
+  form.append("poll_duration_hours", duration);
+  opts.forEach(o => form.append("poll_options", o));
+  const { ok, data } = await api("/posts/with-poll", { method:"POST", body:form });
+  btn.disabled = false; btn.textContent = "Post dengan Poll 📊";
+  if (!ok) { showError("poll-error", data.error || "Gagal posting."); return; }
+  document.getElementById("poll-modal").classList.add("hidden");
+  document.getElementById("poll-content").value = "";
+  document.getElementById("poll-question").value = "";
+  document.querySelectorAll(".poll-opt").forEach(i => i.value = "");
+  toast("📊 Poll berhasil dipost!", "success");
+  loadFeed();
+});
+
+// ─── THREAD MODAL ──────────────────────────────────
+let currentThreadId = null;
+
+async function openThread(postId) {
+  currentThreadId = postId;
+  document.getElementById("thread-modal").classList.remove("hidden");
+  document.getElementById("thread-original").innerHTML = `<div class="feed-loader">Memuat...</div>`;
+  document.getElementById("thread-replies").innerHTML = "";
+  document.getElementById("thread-reply-text").value = "";
+  clearError("thread-reply-error");
+
+  const { ok, data } = await api(`/posts/${postId}`);
+  if (ok) {
+    document.getElementById("thread-original").innerHTML = renderPostCard(data);
+    attachPostActions(document.getElementById("thread-original"));
+  }
+  await loadThreadReplies(postId);
+}
+
+async function loadThreadReplies(postId) {
+  const { ok, data } = await api(`/posts/${postId}/replies`);
+  const el = document.getElementById("thread-replies");
+  if (ok && data.replies?.length) {
+    el.innerHTML = data.replies.map(r => `
+      <div class="reply-item">
+        <div class="avatar avatar-sm">${r.is_anonymous ? "👤" : makeAvatar(r.author?.avatar_url)}</div>
+        <div style="flex:1">
+          <div style="font-weight:700;font-size:.86rem;cursor:pointer;margin-bottom:3px"
+               onclick="visitProfile('${r.author?.username||''}')">
+            ${r.is_anonymous ? "Anonim 🌸" : "@" + escHtml(r.author?.username||"unknown")}
+            <span style="font-weight:400;color:var(--text-light);font-size:.75rem;margin-left:6px">${formatTime(r.created_at)}</span>
+          </div>
+          <div style="font-size:.9rem;line-height:1.6">${escHtml(r.content)}</div>
+        </div>
+      </div>`).join("");
+  } else {
+    el.innerHTML = `<p style="color:var(--text-muted);font-size:.88rem;text-align:center;padding:16px 0">Belum ada balasan. Jadilah yang pertama! 💬</p>`;
+  }
+}
+
+document.getElementById("btn-thread-reply").addEventListener("click", async () => {
+  const text = document.getElementById("thread-reply-text").value.trim();
+  if (!text) { showError("thread-reply-error","Balasan tidak boleh kosong."); return; }
+  clearError("thread-reply-error");
+  const form = new FormData();
+  form.append("content", text);
+  const { ok, data } = await api(`/posts/${currentThreadId}/reply`, { method:"POST", body:form });
+  if (!ok) { showError("thread-reply-error", data.error || "Gagal."); return; }
+  document.getElementById("thread-reply-text").value = "";
+  toast("💬 Balasan terkirim!", "success");
+  await loadThreadReplies(currentThreadId);
+});
+
+// ─── STORIES (grouped per username seperti Instagram) ──
+let storyList       = [];  // [{username, avatar_url, stories:[...], has_unseen}]
+let currentGroupIdx = 0;
+let currentStoryIdx = 0;
+let storyTimer      = null;
+
+async function loadStories() {
+  const bar    = document.getElementById("story-bar");
+  const addBtn = `<div class="story-item" id="add-story-btn">
+    <div class="story-ring unseen"><div class="story-inner story-add">＋</div></div>
+    <div class="story-label">Cerita kamu</div>
+  </div>`;
+  try {
+    const { ok, data } = await api("/stories");
+    if (!ok || !data.stories?.length) { bar.innerHTML = addBtn; attachAddStory(); return; }
+
+    // Group per username
+    const grouped = {};
+    data.stories.forEach(s => {
+      if (!grouped[s.username]) grouped[s.username] = { username:s.username, avatar_url:s.avatar_url, stories:[], has_unseen:false };
+      grouped[s.username].stories.push(s);
+      if (!s.viewed) grouped[s.username].has_unseen = true;
+    });
+    storyList = Object.values(grouped);
+
+    bar.innerHTML = addBtn + storyList.map((g, gi) => {
+      const thumb = g.avatar_url
+        ? (g.avatar_url.startsWith("http") ? g.avatar_url : `https://womenspace.onrender.com${g.avatar_url}`)
+        : (g.stories[0].media_url.startsWith("http") ? g.stories[0].media_url : `https://womenspace.onrender.com${g.stories[0].media_url}`);
+      return `
+        <div class="story-item" onclick="openStoryGroup(${gi})">
+          <div class="story-ring ${g.has_unseen ? "unseen" : "seen"}">
+            <div class="story-inner"><img src="${thumb}" onerror="this.style.display='none'"/></div>
+          </div>
+          <div class="story-label">@${escHtml(g.username)}</div>
+        </div>`;
+    }).join("");
+  } catch { bar.innerHTML = addBtn; }
+  attachAddStory();
+}
+
+function attachAddStory() {
+  document.getElementById("add-story-btn")?.addEventListener("click", () =>
+    document.getElementById("story-modal").classList.remove("hidden"));
+}
+
+function openStoryGroup(gi) {
+  currentGroupIdx = gi; currentStoryIdx = 0;
+  renderStoryViewer();
+  document.getElementById("story-viewer").classList.remove("hidden");
+}
+
+function renderStoryViewer() {
+  const group = storyList[currentGroupIdx];
+  if (!group) { closeStoryViewer(); return; }
+  const s = group.stories[currentStoryIdx];
+  if (!s) { closeStoryViewer(); return; }
+
+  const mediaSrc = s.media_url.startsWith("http") ? s.media_url : `${API_ORIGIN}${s.media_url}`;
+
+  document.getElementById("story-progress").innerHTML =
+    group.stories.map((_, i) => `
+      <div class="story-progress-bar">
+        <div class="story-progress-fill" style="${
+          i < currentStoryIdx ? "width:100%;animation:none" :
+          i === currentStoryIdx ? "" : "width:0;animation:none"}"></div>
+      </div>`).join("");
+
+  const avSrc = s.avatar_url ? (s.avatar_url.startsWith("http") ? s.avatar_url : `${API_ORIGIN}${s.avatar_url}`) : null;
+  document.getElementById("sv-avatar").innerHTML = avSrc ? `<img src="${avSrc}" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>` : "✿";
+  document.getElementById("sv-username").textContent = "@" + group.username;
+  document.getElementById("sv-time").textContent     = formatTime(s.created_at);
+
+  const mediaEl = document.getElementById("sv-media");
+  mediaEl.innerHTML = s.media_type === "video"
+    ? `<video src="${mediaSrc}" controls autoplay style="width:100%;border-radius:var(--radius);max-height:65vh"></video>`
+    : `<img src="${mediaSrc}" style="width:100%;border-radius:var(--radius);max-height:65vh;object-fit:contain"/>`;
+  document.getElementById("sv-caption").textContent = s.caption || "";
+
+  api(`/stories/${s.id}/view`, { method:"POST" });
+  clearTimeout(storyTimer);
+  storyTimer = setTimeout(nextStory, 5000);
+}
+
+function closeStoryViewer() {
+  document.getElementById("story-viewer").classList.add("hidden");
+  clearTimeout(storyTimer);
+  loadStories();
+}
+function nextStory() {
+  const group = storyList[currentGroupIdx];
+  if (!group) { closeStoryViewer(); return; }
+  if (currentStoryIdx < group.stories.length - 1) { currentStoryIdx++; renderStoryViewer(); }
+  else if (currentGroupIdx < storyList.length - 1) { currentGroupIdx++; currentStoryIdx = 0; renderStoryViewer(); }
+  else closeStoryViewer();
+}
+function prevStory() {
+  if (currentStoryIdx > 0) { currentStoryIdx--; renderStoryViewer(); }
+  else if (currentGroupIdx > 0) { currentGroupIdx--; currentStoryIdx = storyList[currentGroupIdx].stories.length - 1; renderStoryViewer(); }
+}
+
+// ─── STORY UPLOAD ──────────────────────────────────
+document.getElementById("story-modal-close").addEventListener("click", () =>
+  document.getElementById("story-modal").classList.add("hidden"));
+document.getElementById("story-file").addEventListener("change", e => {
+  const f = e.target.files[0]; if (!f) return;
+  document.getElementById("story-img-preview").src = URL.createObjectURL(f);
+  document.getElementById("story-preview").classList.remove("hidden");
+});
+document.getElementById("btn-post-story").addEventListener("click", async () => {
+  const f = document.getElementById("story-file").files[0];
+  if (!f) { toast("Pilih foto/video dulu!"); return; }
+  const btn = document.getElementById("btn-post-story");
+  btn.disabled = true; btn.textContent = "Uploading...";
+  const form = new FormData();
+  form.append("media", f);
+  form.append("caption", document.getElementById("story-caption").value);
+  const { ok } = await api("/stories", { method:"POST", body:form });
+  btn.disabled = false; btn.textContent = "Upload Story 🌸";
+  if (ok) {
+    document.getElementById("story-modal").classList.add("hidden");
+    document.getElementById("story-file").value = "";
+    document.getElementById("story-caption").value = "";
+    document.getElementById("story-preview").classList.add("hidden");
+    toast("✨ Story berhasil diupload!", "success");
+    loadStories();
+  } else toast("Gagal upload story.", "error");
+});
+
+loadStories();
+</script>
+</body>
+</html>

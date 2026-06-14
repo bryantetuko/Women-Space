@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Profil — Womenspace 🌸</title>
+<link rel="stylesheet" href="style.css"/>
+<style>
+  .app-header { position:sticky; top:0; z-index:50; background:rgba(253,247,242,.92); backdrop-filter:blur(12px); border-bottom:1.5px solid var(--border); padding:14px 24px; margin:-28px -24px 20px; display:flex; align-items:center; gap:12px; }
+  .app-header h1 { font-family:var(--font-display); font-size:1.3rem; font-weight:700; }
+  .avatar-upload { position:relative; cursor:pointer; display:inline-block; }
+  .avatar-upload:hover .avatar-overlay { opacity:1; }
+  .avatar-overlay { position:absolute; inset:0; border-radius:50%; background:rgba(200,115,138,.6); display:flex; align-items:center; justify-content:center; color:#fff; font-size:1.2rem; opacity:0; transition:opacity var(--transition); }
+  .danger-zone { margin-top:24px; padding-top:20px; border-top:2px dashed var(--border); }
+</style>
+</head>
+<body>
+<div class="app-layout">
+  <div id="navbar-mount"></div>
+
+  <main class="app-main">
+    <div class="app-header">
+      <button onclick="history.back()" style="color:var(--text-muted);font-size:1.2rem">←</button>
+      <h1 id="header-username">Profil</h1>
+    </div>
+
+    <!-- Profile Hero -->
+    <div class="profile-hero">
+      <div class="profile-cover"></div>
+      <div class="profile-hero-body">
+        <div style="display:flex;align-items:flex-end;gap:16px;margin-top:-44px;flex-wrap:wrap">
+          <div class="avatar-upload" id="avatar-upload-wrap">
+            <div class="avatar avatar-xl" id="profile-avatar">✿</div>
+            <div class="avatar-overlay" id="avatar-overlay">📷</div>
+            <input type="file" id="avatar-file" accept="image/*" hidden/>
+          </div>
+          <div style="flex:1;padding-bottom:4px">
+            <h2 id="profile-username" style="font-family:var(--font-display);font-size:1.4rem;font-weight:700"></h2>
+            <p id="profile-bio" style="color:var(--text-muted);font-size:.9rem;margin-top:4px"></p>
+          </div>
+          <div id="profile-actions"></div>
+        </div>
+        <div class="profile-stats" style="margin-top:16px">
+          <div class="profile-stat"><strong id="posts-count">0</strong><span>Unggahan</span></div>
+          <div class="profile-stat"><strong id="followers-count">0</strong><span>Pengikut</span></div>
+          <div class="profile-stat"><strong id="following-count">0</strong><span>Mengikuti</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pinned Post -->
+    <div id="pinned-post-section" class="hidden" style="margin-bottom:4px"></div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="posts">Unggahan</button>
+      <button class="tab-btn" data-tab="replies">Balasan</button>
+      <div class="tab-indicator" style="width:50%"></div>
+    </div>
+
+    <div id="profile-feed"><div class="feed-loader">Memuat profil...</div></div>
+  </main>
+</div>
+
+<!-- Edit Profile Modal -->
+<div class="modal-overlay hidden" id="modal-edit">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Ganti Profil ✏️</h3>
+      <button class="modal-close" id="close-edit">✕</button>
+    </div>
+    <div class="field-group"><label>Username baru</label><input type="text" id="edit-username" placeholder="Kosongkan jika tidak diubah"/></div>
+    <div class="field-group"><label>Email baru</label><input type="email" id="edit-email" placeholder="Kosongkan jika tidak diubah"/></div>
+    <div class="field-group"><label>Bio</label><textarea id="edit-bio" placeholder="Ceritakan sedikit tentang kamu..." rows="2"></textarea></div>
+    <div class="field-group"><label>Password baru</label><input type="password" id="edit-new-pw" placeholder="Kosongkan jika tidak diubah"/></div>
+    <div class="field-group"><label>Password lama <span style="color:var(--rose)">*wajib*</span></label><input type="password" id="edit-old-pw" placeholder="Wajib diisi untuk menyimpan perubahan"/></div>
+    <div id="edit-error" class="form-error hidden"></div>
+    <button class="btn btn-primary btn-full" id="btn-save">Simpan Perubahan</button>
+    <div class="danger-zone">
+      <p style="font-size:.85rem;color:var(--text-muted);margin-bottom:12px">⚠️ Tindakan ini tidak bisa dibatalkan.</p>
+      <button class="btn btn-danger btn-full" id="btn-delete-acc">🗑️ Hapus Akun Permanen</button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirm Modal -->
+<div class="modal-overlay hidden" id="modal-delete">
+  <div class="modal" style="border-top:4px solid var(--danger)">
+    <h3 style="color:var(--danger);margin-bottom:12px">⚠️ Konfirmasi Hapus Akun</h3>
+    <p style="color:var(--text-muted);font-size:.92rem;margin-bottom:16px">Seluruh data kamu akan <strong>dihapus permanen</strong>. Tidak bisa dikembalikan.</p>
+    <div class="field-group"><label>Masukkan password</label><input type="password" id="delete-pw" placeholder="Password kamu"/></div>
+    <div id="delete-error" class="form-error hidden"></div>
+    <div style="display:flex;gap:10px;margin-top:8px">
+      <button class="btn btn-outline btn-full" id="cancel-delete">Batal</button>
+      <button class="btn btn-danger btn-full" id="confirm-delete">Hapus Selamanya</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="hidden"></div>
+
+<script src="js/api.js?v=mediafix2"></script>
+<script>
+requireAuth();
+const me = Auth.getUser();
+const params = new URLSearchParams(window.location.search);
+
+document.getElementById("navbar-mount").innerHTML = renderNavbar("profile");
+
+let profileId    = params.get("id") || me?.id;
+let isOwnProfile = !params.get("id") && !params.get("u");
+
+async function resolveProfile() {
+  const uParam = params.get("u");
+
+  // Kalau ada ?u=username, resolve ke ID dulu
+  if (uParam && !params.get("id")) {
+    const { ok, data } = await api(`/search?q=${encodeURIComponent(uParam)}`);
+    if (ok && data.users?.length) {
+      const found = data.users.find(u => u.username === uParam) || data.users[0];
+      profileId    = found.id;
+      isOwnProfile = profileId === me?.id;
+    } else {
+      document.getElementById("profile-feed").innerHTML =
+        `<div class="feed-empty"><div class="feed-empty-icon">😔</div><h3>Pengguna tidak ditemukan</h3></div>`;
+      return;
+    }
+  }
+
+  // Pastikan profileId valid
+  if (!profileId) { profileId = me?.id; isOwnProfile = true; }
+  isOwnProfile = profileId === me?.id;
+
+  await loadProfile();
+}
+
+async function loadProfile() {
+  const { ok, data } = await api(`/users/${profileId}`);
+  if (!ok) { document.getElementById("profile-feed").innerHTML = `<div class="feed-loader">Profil tidak ditemukan.</div>`; return; }
+
+  document.getElementById("header-username").textContent = `@${data.username}`;
+  document.getElementById("profile-username").textContent = `@${data.username}`;
+  document.getElementById("profile-bio").textContent = data.bio || (isOwnProfile ? "Belum ada bio. Klik edit profil untuk menambahkan." : "");
+  document.getElementById("posts-count").textContent = data.posts?.length || 0;
+  document.getElementById("followers-count").textContent = data.followers;
+  document.getElementById("following-count").textContent = data.following;
+
+  // Avatar
+  const av = document.getElementById("profile-avatar");
+  if (data.avatar_url) {
+    const src = data.avatar_url.startsWith("http") ? data.avatar_url : `${API_ORIGIN}${data.avatar_url}`;
+    av.innerHTML = `<img src="${src}" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.innerHTML='✿'"/>`;
+  }
+
+  // Actions
+  const actions = document.getElementById("profile-actions");
+  if (isOwnProfile) {
+    actions.innerHTML = `<button class="btn btn-outline btn-sm" id="btn-edit-profile">Edit Profil ✏️</button>`;
+    document.getElementById("btn-edit-profile").addEventListener("click", openEditModal);
+    document.getElementById("avatar-upload-wrap").style.cursor = "pointer";
+    document.getElementById("avatar-upload-wrap").addEventListener("click", () => document.getElementById("avatar-file").click());
+    document.getElementById("avatar-file").addEventListener("change", uploadAvatar);
+  } else {
+    const following = data.is_following;
+    actions.innerHTML = `
+      <button class="btn ${following ? "btn-outline" : "btn-primary"} btn-sm" id="btn-follow">
+        ${following ? "✓ Mengikuti" : "+ Ikuti"}
+      </button>
+      <button class="btn btn-ghost btn-sm" style="margin-left:8px" onclick="window.location.href='/dm.html?u=${data.id}'">💬 Pesan</button>`;
+    document.getElementById("btn-follow").addEventListener("click", () => toggleFollow(data.id));
+  }
+
+  // Render tabs
+  window._profileData = data;
+
+  // Load pinned post dulu
+  loadPinnedPost();
+  renderTab("posts");
+}
+
+async function loadPinnedPost() {
+  const { ok, data } = await api(`/users/${profileId}/pinned`);
+  const pinEl = document.getElementById("pinned-post-section");
+  if (!ok || !data.post) { pinEl.classList.add("hidden"); return; }
+  pinEl.classList.remove("hidden");
+  pinEl.innerHTML = `
+    <div style="font-size:.78rem;color:var(--rose);font-weight:700;margin-bottom:8px;padding:0 4px">
+      📌 Postingan Dipin
+    </div>
+    ${renderPostCard(data.post)}`;
+  attachPostActions(pinEl);
+}
+
+function renderTab(tab) {
+  const data      = window._profileData;
+  const container = document.getElementById("profile-feed");
+  const items     = tab === "posts" ? data.posts : data.replies;
+  if (!items?.length) {
+    container.innerHTML = `<div class="feed-empty">
+      <div class="feed-empty-icon">🌸</div>
+      <h3>Belum ada ${tab === "posts" ? "postingan" : "balasan"}</h3>
+    </div>`;
+    return;
+  }
+  container.innerHTML = items.map(p => renderPostCard(p)).join("");
+  attachPostActions(container);
+}
+
+// Tab switching
+document.querySelectorAll(".tab-btn").forEach((btn, i) => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    document.querySelector(".tab-indicator").style.left = i === 0 ? "0" : "50%";
+    renderTab(btn.dataset.tab);
+  });
+});
+
+async function toggleFollow(userId) {
+  const btn = document.getElementById("btn-follow");
+  btn.disabled = true;
+  const { ok, data } = await api(`/users/${userId}/follow`, { method:"POST" });
+  btn.disabled = false;
+  if (!ok) { toast("Gagal follow.", "error"); return; }
+  btn.className = `btn ${data.following ? "btn-outline" : "btn-primary"} btn-sm`;
+  btn.textContent = data.following ? "✓ Mengikuti" : "+ Ikuti";
+  document.getElementById("followers-count").textContent = data.followers;
+  toast(data.following ? "✅ Berhasil mengikuti!" : "Berhenti mengikuti", data.following ? "success" : "");
+}
+
+async function uploadAvatar() {
+  const f = document.getElementById("avatar-file").files[0];
+  if (!f) return;
+  const form = new FormData();
+  form.append("avatar", f);
+  const btn = document.getElementById("btn-edit-profile");
+  if (btn) { btn.disabled = true; btn.textContent = "Uploading..."; }
+  const { ok, data } = await api("/users/me/avatar", { method:"POST", body:form });
+  if (btn) { btn.disabled = false; btn.textContent = "Edit Profil ✏️"; }
+  if (ok) {
+    // Update avatar langsung di layar
+    const src = `${API_ORIGIN}${data.avatar_url}`;
+    document.getElementById("profile-avatar").innerHTML =
+      `<img src="${src}" style="width:100%;height:100%;object-fit:cover"/>`;
+    // Update user di localStorage
+    const u = Auth.getUser();
+    if (u) { u.avatar_url = data.avatar_url; Auth.setUser(u); }
+    toast("✅ Foto profil diperbarui!", "success");
+  } else {
+    toast("Gagal upload foto.", "error");
+  }
+}
+
+function openEditModal() {
+  const user = Auth.getUser();
+  document.getElementById("edit-username").value = "";
+  document.getElementById("edit-email").value = "";
+  document.getElementById("edit-bio").value = user?.bio || "";
+  document.getElementById("edit-new-pw").value = "";
+  document.getElementById("edit-old-pw").value = "";
+  clearError("edit-error");
+  document.getElementById("modal-edit").classList.remove("hidden");
+}
+
+document.getElementById("close-edit").addEventListener("click", () => document.getElementById("modal-edit").classList.add("hidden"));
+
+document.getElementById("btn-save").addEventListener("click", async () => {
+  clearError("edit-error");
+  const old_password = document.getElementById("edit-old-pw").value;
+  if (!old_password) { showError("edit-error","Password lama wajib diisi."); return; }
+
+  const body = { old_password,
+    username    : document.getElementById("edit-username").value.trim() || undefined,
+    email       : document.getElementById("edit-email").value.trim()    || undefined,
+    bio         : document.getElementById("edit-bio").value             || undefined,
+    new_password: document.getElementById("edit-new-pw").value          || undefined,
+  };
+
+  const btn = document.getElementById("btn-save");
+  btn.disabled = true; btn.textContent = "Menyimpan...";
+  const { ok, data } = await api("/users/me/update", { method:"PUT", body:JSON.stringify(body) });
+  btn.disabled = false; btn.textContent = "Simpan Perubahan";
+
+  if (!ok) { showError("edit-error", data.error || "Gagal menyimpan."); return; }
+  const r = await api("/auth/me");
+  if (r.ok) Auth.setUser(r.data);
+  document.getElementById("modal-edit").classList.add("hidden");
+  toast("✅ Profil diperbarui!", "success");
+  loadProfile();
+});
+
+document.getElementById("btn-delete-acc").addEventListener("click", () => {
+  document.getElementById("modal-edit").classList.add("hidden");
+  document.getElementById("modal-delete").classList.remove("hidden");
+});
+document.getElementById("cancel-delete").addEventListener("click", () => document.getElementById("modal-delete").classList.add("hidden"));
+document.getElementById("confirm-delete").addEventListener("click", async () => {
+  const pw = document.getElementById("delete-pw").value;
+  if (!pw) { showError("delete-error","Masukkan password."); return; }
+  const { ok, data } = await api("/users/me/delete", { method:"DELETE", body:JSON.stringify({ password:pw }) });
+  if (!ok) { showError("delete-error", data.error || "Gagal."); return; }
+  Auth.clear();
+  window.location.href = "/login.html";
+});
+
+resolveProfile();
+</script>
+</body>
+</html>

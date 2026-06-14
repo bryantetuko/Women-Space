@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Anonim — Womenspace 🌸</title>
+<link rel="stylesheet" href="style.css"/>
+<style>
+  .app-header { position:sticky;top:0;z-index:50;background:rgba(253,247,242,.92);backdrop-filter:blur(12px);border-bottom:1.5px solid var(--border);padding:16px 24px;margin:-28px -24px 20px; }
+  .anon-hero { background:linear-gradient(135deg,#8A5BA8 0%,#C8A0D8 100%);border-radius:var(--radius);padding:24px;margin-bottom:20px;color:#fff;position:relative;overflow:hidden; }
+  .anon-hero::after { content:'👤';position:absolute;right:20px;top:50%;transform:translateY(-50%);font-size:5rem;opacity:.15; }
+  .anon-hero h2 { font-family:var(--font-display);font-size:1.4rem;font-weight:700;margin-bottom:6px; }
+  .anon-hero p { font-size:.9rem;opacity:.9;max-width:300px; }
+  .anon-compose { background:var(--white);border:1.5px solid #D8C0E8;border-radius:var(--radius);padding:18px 20px;margin-bottom:20px;box-shadow:var(--shadow-sm); }
+  .anon-compose textarea { border-color:#D8C0E8; }
+  .anon-compose textarea:focus { border-color:#8A5BA8;box-shadow:0 0 0 3px rgba(138,91,168,.15); }
+  .anon-btn { background:#8A5BA8;color:#fff;border:none;border-radius:var(--radius-full);padding:9px 20px;font-weight:600;font-size:.88rem;cursor:pointer;transition:background var(--transition); }
+  .anon-btn:hover { background:#7249A0; }
+  .anon-warning { background:#f0e8f5;border:1px solid #D8C0E8;border-radius:var(--radius-sm);padding:12px 14px;font-size:.85rem;color:#6B4A8A;margin-bottom:16px; }
+</style>
+</head>
+<body>
+<div class="app-layout">
+  <div id="navbar-mount"></div>
+  <main class="app-main">
+    <div class="app-header">
+      <h1>Ruang Anonim 👤</h1>
+    </div>
+
+    <div class="anon-hero">
+      <h2>Bicara Bebas, Tanpa Identitas</h2>
+      <p>Ceritakan apapun tanpa khawatir. Identitasmu tetap aman dan terlindungi.</p>
+    </div>
+
+    <div class="anon-warning">
+      🔒 <strong>Privasimu terlindungi.</strong> Identitasmu tidak akan pernah terungkap di Saluran ini. Tetap jaga kesopanan dan saling menghargai.
+    </div>
+
+    <!-- Compose anonim -->
+    <div class="anon-compose">
+      <div style="display:flex;gap:12px">
+        <div class="avatar avatar-md" style="background:#f0e8f5;color:#8A5BA8;font-size:1.2rem;border-color:#D8C0E8">👤</div>
+        <div style="flex:1">
+          <textarea id="anon-text" placeholder="Ceritakan apapun... kamu aman di sini 💜" rows="3" style="border-color:#D8C0E8"></textarea>
+          <div style="display:flex;justify-content:flex-end;margin-top:10px">
+            <button class="anon-btn" id="btn-anon-post">Unggah Anonim 👤</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Feed anonim -->
+    <div id="anon-feed"><div class="feed-loader">Memuat postingan anonim...</div></div>
+  </main>
+</div>
+<div id="toast" class="hidden"></div>
+<script src="js/api.js"></script>
+<script>
+requireAuth();
+document.getElementById("navbar-mount").innerHTML = renderNavbar("anonim");
+
+async function loadAnonFeed() {
+  const c = document.getElementById("anon-feed");
+  const { ok, data } = await api("/posts/anonymous");
+  if (!ok || !data.posts?.length) {
+    c.innerHTML = `<div class="feed-empty"><div class="feed-empty-icon">👤</div><h3>Belum ada postingan anonim</h3><p>Jadilah yang pertama berbagi secara anonim</p></div>`;
+    return;
+  }
+  c.innerHTML = data.posts.map(p => renderPostCard(p)).join("");
+  attachPostActions(c);
+}
+
+document.getElementById("btn-anon-post").addEventListener("click", async () => {
+  const text = document.getElementById("anon-text").value.trim();
+  if (!text) { toast("Tulis sesuatu dulu!"); return; }
+  const btn = document.getElementById("btn-anon-post");
+  btn.disabled = true; btn.textContent = "Memposting...";
+  const form = new FormData();
+  form.append("content", text);
+  form.append("is_anonymous", "1");
+  const { ok } = await api("/posts", { method:"POST", body:form });
+  btn.disabled = false; btn.textContent = "Post Anonim 👤";
+  if (ok) {
+    document.getElementById("anon-text").value = "";
+    toast("👤 Postingan anonim terkirim!", "success");
+    loadAnonFeed();
+  } else toast("Gagal posting.", "error");
+});
+
+loadAnonFeed();
+</script>
+</body>
+</html>

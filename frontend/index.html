@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Womenspace 🌸</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    display:flex; align-items:center; justify-content:center;
+    min-height:100vh;
+    background: linear-gradient(135deg, #F5E0E5 0%, #FDF7F2 100%);
+    font-family: 'DM Sans', system-ui, sans-serif;
+  }
+  .splash { text-align:center; }
+  .mark {
+    font-size: 4rem; display:inline-block;
+    animation: spin 2s linear infinite;
+  }
+  .title {
+    font-family: Georgia, serif; font-size: 1.8rem;
+    font-weight: 700; color: #C8738A; margin-top: 12px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+<div class="splash">
+  <div class="mark">✿</div>
+  <div class="title">Womenspace</div>
+</div>
+<script>
+  const token = localStorage.getItem("ws_token");
+  // Redirect instan — tidak perlu tunggu API
+  window.location.replace(token ? "/home.html" : "/login.html");
+</script>
+</body>
+</html>

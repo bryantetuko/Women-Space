@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Tersimpan — Womenspace 🌸</title>
+<link rel="stylesheet" href="style.css"/>
+<style>
+  .app-header { position:sticky;top:0;z-index:50;background:rgba(253,247,242,.92);backdrop-filter:blur(12px);border-bottom:1.5px solid var(--border);padding:16px 24px;margin:-28px -24px 20px; }
+  .app-header h1 { font-family:var(--font-display);font-size:1.5rem;font-weight:700; }
+</style>
+</head>
+<body>
+<div class="app-layout">
+  <div id="navbar-mount"></div>
+  <main class="app-main">
+    <div class="app-header">
+      <h1>Tersimpan 🔖</h1>
+    </div>
+    <div id="bookmarks-container"><div class="feed-loader">Memuat postingan tersimpan...</div></div>
+  </main>
+</div>
+<div id="toast" class="hidden"></div>
+<script src="js/api.js?v=mediafix2"></script>
+<script>
+requireAuth();
+document.getElementById("navbar-mount").innerHTML = renderNavbar("Penanda");
+async function loadBookmarks() {
+  const c = document.getElementById("bookmarks-container");
+  const { ok, data } = await api("/posts/bookmarks");
+  if (!ok || !data.posts?.length) {
+    c.innerHTML = `<div class="feed-empty"><div class="feed-empty-icon">🔖</div><h3>Belum ada postingan tersimpan</h3><p>Klik ikon Penanda di postingan untuk menyimpannya</p></div>`;
+    return;
+  }
+  c.innerHTML = data.posts.map(p => renderPostCard(p)).join("");
+  attachPostActions(c);
+}
+loadBookmarks();
+</script>
+</body>
+</html>

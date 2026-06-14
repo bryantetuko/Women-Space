@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Pesan — Womenspace 🌸</title>
+<link rel="stylesheet" href="style.css"/>
+<style>
+  body { overflow:hidden; }
+  .dm-wrap {
+    display:flex; height:100vh;
+    margin-left:var(--nav-w);
+  }
+  .dm-sidebar {
+    width:300px; flex-shrink:0;
+    border-right:1.5px solid var(--border);
+    display:flex; flex-direction:column;
+    background:var(--white); height:100vh;
+  }
+  .dm-sidebar-head {
+    padding:18px 16px; border-bottom:1.5px solid var(--border);
+    display:flex; align-items:center; justify-content:space-between;
+    flex-shrink:0;
+  }
+  .dm-sidebar-head h2 { font-family:var(--font-display); font-size:1.1rem; font-weight:700; }
+  .dm-search-bar { padding:10px 12px; border-bottom:1px solid var(--border-light); flex-shrink:0; }
+  .dm-search-bar input { border-radius:var(--radius-full); background:var(--cream); font-size:.85rem; padding:8px 14px; }
+  .dm-conv-list { flex:1; overflow-y:auto; }
+
+  .dm-item {
+    display:flex; align-items:center; gap:12px;
+    padding:13px 14px; cursor:pointer;
+    border-bottom:1px solid var(--border-light);
+    transition:background var(--transition);
+  }
+  .dm-item:hover { background:var(--blush); }
+  .dm-item.active { background:var(--rose-pale); }
+  .dm-item-info { flex:1; min-width:0; }
+  .dm-item-name { font-weight:600; font-size:.9rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .dm-item-preview { font-size:.78rem; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:2px; }
+  .dm-item-time { font-size:.72rem; color:var(--text-light); flex-shrink:0; }
+  .dm-unread-badge { width:18px; height:18px; border-radius:50%; background:var(--rose); color:#fff; font-size:.68rem; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+
+  .dm-main { flex:1; display:flex; flex-direction:column; background:var(--cream); min-width:0; }
+
+  .dm-empty {
+    flex:1; display:flex; flex-direction:column;
+    align-items:center; justify-content:center;
+    gap:12px; color:var(--text-muted);
+  }
+  .dm-empty-icon { font-size:3.5rem; }
+
+  .chat-head {
+    padding:13px 18px; border-bottom:1.5px solid var(--border);
+    display:flex; align-items:center; gap:12px;
+    background:var(--white); flex-shrink:0;
+  }
+  .chat-head-info { flex:1; }
+  .chat-head-name { font-weight:700; font-size:.95rem; cursor:pointer; }
+  .chat-head-name:hover { color:var(--rose); }
+  .chat-head-status { font-size:.75rem; color:var(--success); }
+
+  .chat-msgs {
+    flex:1; overflow-y:auto; padding:16px 18px;
+    display:flex; flex-direction:column; gap:10px;
+  }
+
+  .msg-wrap { display:flex; gap:8px; align-items:flex-end; max-width:75%; }
+  .msg-wrap.mine { align-self:flex-end; flex-direction:row-reverse; }
+  .msg-wrap.theirs { align-self:flex-start; }
+
+  .msg-bubble {
+    padding:10px 14px; border-radius:18px;
+    font-size:.9rem; line-height:1.55; word-break:break-word;
+  }
+  .msg-bubble.mine { background:var(--rose); color:#fff; border-bottom-right-radius:4px; }
+  .msg-bubble.theirs { background:var(--white); border:1.5px solid var(--border); border-bottom-left-radius:4px; }
+  .msg-time { font-size:.7rem; color:var(--text-light); margin-top:3px; text-align:right; }
+  .msg-wrap.theirs .msg-time { text-align:left; }
+
+  /* Reply quote */
+  .msg-reply-quote {
+    font-size:.76rem; padding:5px 10px; border-radius:8px 8px 0 0;
+    margin-bottom:2px; border-left:3px solid rgba(255,255,255,.5);
+    background:rgba(0,0,0,.1); color:rgba(255,255,255,.85);
+    max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  }
+  .msg-wrap.theirs .msg-reply-quote {
+    border-left-color:var(--rose-light);
+    background:var(--rose-pale); color:var(--text-muted);
+  }
+  .msg-bubble { cursor:pointer; }
+  .msg-bubble:hover { filter:brightness(.95); }
+
+  /* Reply bar muncul saat klik pesan */
+  .reply-bar {
+    display:flex; align-items:center; gap:10px;
+    padding:8px 16px; background:var(--rose-pale);
+    border-top:1px solid var(--rose-light); font-size:.82rem;
+    color:var(--text-muted); flex-shrink:0;
+  }
+  .reply-bar-text { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .reply-bar-cancel { cursor:pointer; color:var(--rose); font-size:1.1rem; flex-shrink:0; }
+
+  /* Date separator */
+  .date-sep { text-align:center; font-size:.75rem; color:var(--text-light); margin:8px 0; display:flex; align-items:center; gap:8px; }
+  .date-sep::before, .date-sep::after { content:''; flex:1; height:1px; background:var(--border); }
+
+  .chat-input-wrap {
+    padding:12px 16px; border-top:1.5px solid var(--border);
+    display:flex; gap:8px; align-items:center;
+    background:var(--white); flex-shrink:0;
+  }
+  .chat-input-wrap input {
+    flex:1; border-radius:var(--radius-full);
+    background:var(--cream); font-size:.9rem; padding:10px 16px;
+  }
+  .chat-input-wrap input:focus { background:var(--white); }
+  .chat-send-btn {
+    width:38px; height:38px; border-radius:50%;
+    background:var(--rose); color:#fff;
+    display:flex; align-items:center; justify-content:center;
+    flex-shrink:0; font-size:1rem; cursor:pointer;
+    transition:background var(--transition);
+  }
+  .chat-send-btn:hover { background:var(--rose-dark); }
+
+  /* New DM Modal */
+  .user-search-result {
+    display:flex; align-items:center; gap:10px;
+    padding:10px 14px; cursor:pointer;
+    border-radius:var(--radius-sm); transition:background var(--transition);
+  }
+  .user-search-result:hover { background:var(--blush); }
+
+  @media (max-width:768px) {
+    .dm-wrap { margin-left:0; }
+    .dm-sidebar { position:fixed; left:0; top:0; z-index:50; width:100%; transition:transform .3s ease; }
+    .dm-sidebar.slide-out { transform:translateX(-100%); }
+    .dm-main { width:100%; }
+  }
+</style>
+</head>
+<body>
+
+<div id="nav-wrap" style="position:fixed;left:0;top:0;height:100vh;z-index:100"></div>
+
+<div class="dm-wrap">
+  <!-- Sidebar -->
+  <div class="dm-sidebar" id="dm-sidebar">
+    <div class="dm-sidebar-head">
+      <h2>💬 Pesan</h2>
+      <button class="btn btn-primary btn-sm" id="btn-new-dm">+ Baru</button>
+    </div>
+    <div class="dm-search-bar">
+      <input type="text" id="dm-search" placeholder="Cari percakapan..."/>
+    </div>
+    <div class="dm-conv-list" id="conv-list">
+      <div class="feed-loader">Memuat percakapan...</div>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div class="dm-main" id="dm-main">
+    <!-- Empty state -->
+    <div class="dm-empty" id="dm-empty">
+      <div class="dm-empty-icon">💬</div>
+      <h3 style="font-family:var(--font-display)">Pilih percakapan</h3>
+      <p style="font-size:.88rem">atau mulai percakapan baru</p>
+      <button class="btn btn-primary" id="btn-new-dm-2">✉️ Mulai Percakapan Baru</button>
+    </div>
+
+    <!-- Chat area (hidden by default) -->
+    <div id="chat-area" style="display:none;flex-direction:column;height:100%">
+      <div class="chat-head">
+        <button style="color:var(--text-muted);font-size:1.3rem;margin-right:4px" id="btn-back-chat">←</button>
+        <div class="avatar avatar-md" id="chat-av">✿</div>
+        <div class="chat-head-info">
+          <div class="chat-head-name" id="chat-name" onclick="openPartnerProfile()">...</div>
+          <div class="chat-head-status">● Online</div>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="openPartnerProfile()">Profil →</button>
+      </div>
+      <div class="chat-msgs" id="chat-msgs"></div>
+      <div class="reply-bar hidden" id="reply-bar">
+        <span>↩️ Membalas:</span>
+        <span class="reply-bar-text" id="reply-bar-text"></span>
+        <span class="reply-bar-cancel" onclick="cancelReply()">✕</span>
+      </div>
+      <div class="chat-input-wrap">
+        <label class="compose-tool" title="Kirim gambar" style="flex-shrink:0">
+          📷<input type="file" id="dm-img" accept="image/*" hidden/>
+        </label>
+        <input type="text" id="chat-input" placeholder="Tulis pesan..."/>
+        <div class="chat-send-btn" id="btn-send">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="white" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- New DM Modal -->
+<div class="modal-overlay hidden" id="modal-new-dm">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Pesan Baru 💬</h3>
+      <button class="modal-close" id="close-new-dm">✕</button>
+    </div>
+    <div class="search-bar-wrap" style="margin-bottom:14px">
+      <span>🔍</span>
+      <input type="text" id="new-dm-q" placeholder="Cari username..."/>
+    </div>
+    <div id="new-dm-results" style="max-height:280px;overflow-y:auto"></div>
+  </div>
+</div>
+
+<div id="toast" class="hidden"></div>
+<script src="js/api.js"></script>
+<script>
+requireAuth();
+const me = Auth.getUser();
+document.getElementById("nav-wrap").innerHTML = renderNavbar("dm");
+
+let currentConvId     = null;
+let currentPartnerId  = null;
+let currentPartnerName = "";
+let pollTimer         = null;
+let allConvs          = [];
+
+// ─── LOAD CONVERSATIONS ────────────────────────
+async function loadConvs() {
+  const { ok, data } = await api("/dm/conversations");
+  const list = document.getElementById("conv-list");
+  if (!ok || !data.conversations?.length) {
+    list.innerHTML = `<div class="feed-empty" style="padding:40px 20px">
+      <div class="feed-empty-icon">💬</div>
+      <p>Belum ada percakapan</p>
+    </div>`;
+    allConvs = [];
+    return;
+  }
+  allConvs = data.conversations;
+  renderConvList(allConvs);
+}
+
+function renderConvList(convs) {
+  const list = document.getElementById("conv-list");
+  list.innerHTML = convs.map(c => `
+    <div class="dm-item ${c.id===currentConvId?"active":""}"
+         onclick="openConv('${c.id}','${c.partner_id}',${JSON.stringify(c.partner_name)},${JSON.stringify(c.partner_avatar||'')})">
+      <div class="avatar avatar-md">${makeAvatar(c.partner_avatar)}</div>
+      <div class="dm-item-info">
+        <div class="dm-item-name">@${escHtml(c.partner_name)}</div>
+        <div class="dm-item-preview">${escHtml(c.last_message || "Mulai percakapan...")}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0">
+        <div class="dm-item-time">${c.last_message ? formatTime(c.updated_at||c.created_at) : ""}</div>
+        ${c.unread_count > 0 ? `<div class="dm-unread-badge">${c.unread_count}</div>` : ""}
+      </div>
+    </div>`).join("");
+}
+
+// Search convs
+document.getElementById("dm-search").addEventListener("input", function() {
+  const q = this.value.toLowerCase();
+  renderConvList(q ? allConvs.filter(c => c.partner_name.toLowerCase().includes(q)) : allConvs);
+});
+
+// ─── OPEN CONVERSATION ─────────────────────────
+async function openConv(convId, partnerId, partnerName, partnerAvatar) {
+  currentConvId      = convId;
+  currentPartnerId   = partnerId;
+  currentPartnerName = partnerName;
+
+  // Show chat area
+  document.getElementById("dm-empty").style.display  = "none";
+  const chatArea = document.getElementById("chat-area");
+  chatArea.style.display = "flex";
+
+  // Set header
+  document.getElementById("chat-name").textContent  = "@" + partnerName;
+  const avEl = document.getElementById("chat-av");
+  avEl.innerHTML = makeAvatar(partnerAvatar);
+
+  // Update sidebar active
+  renderConvList(allConvs);
+
+  // Clear polling lama
+  clearInterval(pollTimer);
+
+  // Load messages
+  await loadMsgs();
+
+  // Poll setiap 3 detik
+  pollTimer = setInterval(loadMsgs, 3000);
+
+  // Focus input
+  document.getElementById("chat-input").focus();
+}
+
+function openPartnerProfile() {
+  if (currentPartnerId) window.location.href = `/profile.html?id=${currentPartnerId}`;
+}
+
+let replyToMsg = null; // { id, content, sender_name }
+
+function setReplyTo(msgId, content, senderName) {
+  replyToMsg = { id: msgId, content, sender_name: senderName };
+  document.getElementById("reply-bar").classList.remove("hidden");
+  document.getElementById("reply-bar-text").textContent =
+    `@${senderName}: ${content.substring(0, 60)}${content.length > 60 ? "..." : ""}`;
+  document.getElementById("chat-input").focus();
+}
+
+function cancelReply() {
+  replyToMsg = null;
+  document.getElementById("reply-bar").classList.add("hidden");
+  document.getElementById("reply-bar-text").textContent = "";
+}
+
+// ─── LOAD MESSAGES ─────────────────────────────
+let lastMsgCount = 0;
+
+async function loadMsgs() {
+  if (!currentConvId) return;
+  const { ok, data } = await api(`/dm/conversations/${currentConvId}/messages`);
+  if (!ok) return;
+
+  const msgs   = data.messages || [];
+  const box    = document.getElementById("chat-msgs");
+  const atBot  = box.scrollHeight - box.scrollTop - box.clientHeight < 60;
+
+  if (msgs.length === lastMsgCount) return; // tidak ada perubahan
+  lastMsgCount = msgs.length;
+
+  // Render dengan date separators
+  let lastDate = "";
+  box.innerHTML = msgs.map(m => {
+    const mine      = m.sender_id === me?.id;
+    const d         = new Date((m.created_at||"").replace(" ","T") + "+07:00");
+    const dateStr   = d.toLocaleDateString("id-ID",{weekday:"long",day:"numeric",month:"long"});
+    const sep       = dateStr !== lastDate ? `<div class="date-sep">${dateStr}</div>` : "";
+    lastDate        = dateStr;
+    const avHtml    = !mine ? `<div class="avatar avatar-sm">${makeAvatar(m.sender_avatar)}</div>` : "";
+
+    // Quote reply jika ada
+    const quoteHtml = m.reply_to_content ? `
+      <div class="msg-reply-quote">↩️ @${escHtml(m.reply_to_sender||"?")} : ${escHtml(m.reply_to_content.substring(0,50))}...</div>` : "";
+
+    return `${sep}
+      <div class="msg-wrap ${mine?"mine":"theirs"}">
+        ${avHtml}
+        <div>
+          ${quoteHtml}
+          <div class="msg-bubble ${mine?"mine":"theirs"}"
+               onclick="setReplyTo('${m.id}','${escHtml(m.content)}','${escHtml(m.sender_name||"?")}')">
+            ${escHtml(m.content)}
+          </div>
+          <div class="msg-time">${formatTime(m.created_at)}</div>
+        </div>
+      </div>`;
+  }).join("");
+
+  if (atBot || msgs.length <= 10) box.scrollTop = box.scrollHeight;
+
+  // Refresh conv list (update unread badge)
+  loadConvs();
+}
+
+// ─── SEND MESSAGE ──────────────────────────────
+async function sendMsg() {
+  const input = document.getElementById("chat-input");
+  const text  = input.value.trim();
+  if (!text || !currentConvId) return;
+  input.value = "";
+
+  const body = { content: text };
+  if (replyToMsg) {
+    body.reply_to_id      = replyToMsg.id;
+    body.reply_to_content = replyToMsg.content;
+    body.reply_to_sender  = replyToMsg.sender_name;
+  }
+  cancelReply();
+
+  const { ok } = await api(`/dm/conversations/${currentConvId}/messages`, {
+    method:"POST", body: JSON.stringify(body)
+  });
+  if (ok) await loadMsgs();
+  else toast("Gagal mengirim pesan.", "error");
+}
+
+document.getElementById("btn-send").addEventListener("click", sendMsg);
+document.getElementById("chat-input").addEventListener("keydown", e => {
+  if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMsg(); }
+});
+
+// Back button
+document.getElementById("btn-back-chat").addEventListener("click", () => {
+  clearInterval(pollTimer);
+  currentConvId = null;
+  lastMsgCount  = 0;
+  document.getElementById("chat-area").style.display = "none";
+  document.getElementById("dm-empty").style.display  = "flex";
+  renderConvList(allConvs);
+});
+
+// ─── NEW DM ────────────────────────────────────
+["btn-new-dm","btn-new-dm-2"].forEach(id => {
+  document.getElementById(id)?.addEventListener("click", () => {
+    document.getElementById("modal-new-dm").classList.remove("hidden");
+    document.getElementById("new-dm-q").value = "";
+    document.getElementById("new-dm-results").innerHTML = "";
+    setTimeout(() => document.getElementById("new-dm-q").focus(), 100);
+  });
+});
+document.getElementById("close-new-dm").addEventListener("click", () =>
+  document.getElementById("modal-new-dm").classList.add("hidden"));
+
+let searchTimer = null;
+document.getElementById("new-dm-q").addEventListener("input", function() {
+  clearTimeout(searchTimer);
+  const q = this.value.trim();
+  if (q.length < 1) { document.getElementById("new-dm-results").innerHTML = ""; return; }
+  searchTimer = setTimeout(async () => {
+    const { ok, data } = await api(`/search?q=${encodeURIComponent(q)}`);
+    if (!ok) return;
+    const res = document.getElementById("new-dm-results");
+    const users = (data.users||[]).filter(u => u.id !== me?.id);
+    if (!users.length) { res.innerHTML = `<p style="padding:14px;color:var(--text-muted);text-align:center">Tidak ditemukan</p>`; return; }
+    res.innerHTML = users.map(u => `
+      <div class="user-search-result" onclick="startDM('${u.id}','${escHtml(u.username)}','${u.avatar_url||""}')">
+        <div class="avatar avatar-md">${makeAvatar(u.avatar_url)}</div>
+        <div>
+          <div style="font-weight:700">@${escHtml(u.username)}</div>
+          <div style="font-size:.8rem;color:var(--text-muted)">${escHtml(u.bio||"")}</div>
+        </div>
+      </div>`).join("");
+  }, 300);
+});
+
+async function startDM(userId, username, avatar) {
+  document.getElementById("modal-new-dm").classList.add("hidden");
+  const { ok, data } = await api("/dm/conversations", {
+    method:"POST", body: JSON.stringify({ partner_id: userId })
+  });
+  if (!ok) { toast("Gagal memulai percakapan.", "error"); return; }
+  await loadConvs();
+  openConv(data.conversation_id, userId, username, avatar);
+}
+
+// ─── INIT ──────────────────────────────────────
+// Cek URL param
+const urlParams = new URLSearchParams(window.location.search);
+const initUser  = urlParams.get("u");
+const initConv  = urlParams.get("conv");
+
+loadConvs().then(async () => {
+  if (initUser) {
+    // Buka DM dengan user tertentu
+    const { ok, data } = await api(`/users/${initUser}`);
+    if (ok) startDM(initUser, data.username, data.avatar_url||"");
+  } else if (initConv) {
+    // Buka conversation tertentu
+    const conv = allConvs.find(c => c.id === initConv);
+    if (conv) openConv(conv.id, conv.partner_id, conv.partner_name, conv.partner_avatar||"");
+  }
+});
+</script>
+</body>
+</html>

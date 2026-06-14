@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Jelajahi — Womenspace 🌸</title>
+<link rel="stylesheet" href="style.css"/>
+<style>
+  .app-header { position:sticky; top:0; z-index:50; background:rgba(253,247,242,.92); backdrop-filter:blur(12px); border-bottom:1.5px solid var(--border); padding:16px 24px; margin:-28px -24px 20px; }
+  .tag-chip { display:inline-flex; align-items:center; padding:6px 14px; border-radius:var(--radius-full); background:var(--rose-pale); color:var(--rose); font-size:.83rem; font-weight:600; cursor:pointer; transition:all var(--transition); margin:4px; }
+  .tag-chip:hover { background:var(--rose); color:#fff; }
+  .trending-item { display:flex; align-items:center; gap:14px; padding:14px 16px; border-bottom:1px solid var(--border-light); cursor:pointer; transition:background var(--transition); }
+  .trending-item:hover { background:var(--blush); }
+  .trending-num { font-size:1.1rem; font-weight:900; color:var(--rose-light); width:28px; text-align:center; flex-shrink:0; }
+  .trending-info { flex:1; }
+  .trending-tag { font-weight:700; font-size:.95rem; }
+  .trending-count { font-size:.8rem; color:var(--text-muted); margin-top:2px; }
+  .user-result { display:flex; align-items:center; gap:12px; padding:14px 16px; border-bottom:1px solid var(--border-light); cursor:pointer; transition:background var(--transition); }
+  .user-result:hover { background:var(--blush); }
+  .user-result-info { flex:1; }
+  .section-card { background:var(--white); border:1.5px solid var(--border); border-radius:var(--radius); overflow:hidden; box-shadow:var(--shadow-sm); margin-bottom:20px; }
+  .section-card-header { padding:14px 16px; border-bottom:1px solid var(--border-light); display:flex; align-items:center; justify-content:space-between; }
+  .section-card-header h3 { font-family:var(--font-display); font-size:1.05rem; font-weight:700; }
+</style>
+</head>
+<body>
+
+<div class="app-layout">
+  <div id="navbar-mount"></div>
+
+  <main class="app-main">
+    <div class="app-header">
+      <h1 style="font-family:var(--font-display);font-size:1.5rem;font-weight:700;margin-bottom:14px">Jelajahi 🔍</h1>
+      <div class="search-bar-wrap">
+        <span style="font-size:1.1rem">Jelajahi🔍</span>
+        <input type="text" id="search-input" placeholder="Cari postingan, akun, atau topik..."/>
+        <button class="btn btn-primary btn-sm" id="btn-search">Cari</button>
+      </div>
+    </div>
+
+    <!-- Topik populer -->
+    <div class="section-card">
+      <div class="section-card-header"><h3>🏷️ Topik Populer</h3></div>
+      <div style="padding:12px 10px" id="topics-container">
+        <span class="tag-chip">#MentalHealth</span>
+        <span class="tag-chip">#Perempuan</span>
+        <span class="tag-chip">#Curhat</span>
+        <span class="tag-chip">#Karir</span>
+        <span class="tag-chip">#Relationship</span>
+        <span class="tag-chip">#BodyPositivity</span>
+        <span class="tag-chip">#Parenting</span>
+        <span class="tag-chip">#Self-Love</span>
+        <span class="tag-chip">#Feminisme</span>
+        <span class="tag-chip">#Inspirasi</span>
+      </div>
+    </div>
+
+    <!-- Trending -->
+    <div class="section-card" id="trending-section">
+      <div class="section-card-header"><h3>🔥 Trending Sekarang</h3></div>
+      <div id="trending-container"><div class="feed-loader">Memuat trending...</div></div>
+    </div>
+
+    <!-- Hasil pencarian -->
+    <div id="search-results" class="hidden">
+      <div class="section-card" id="user-results-card">
+        <div class="section-card-header"><h3>👤 Akun</h3></div>
+        <div id="user-results"></div>
+      </div>
+      <div id="post-results"><div class="feed-loader">Memuat hasil...</div></div>
+    </div>
+  </main>
+</div>
+
+<div id="toast" class="hidden"></div>
+
+<script src="js/api.js?v=mediafix2"></script>
+<script>
+requireAuth();
+document.getElementById("navbar-mount").innerHTML = renderNavbar("search");
+
+// Trending
+async function loadTrending() {
+  const c = document.getElementById("trending-container");
+  try {
+    const { ok, data } = await api("/search/trending");
+    if (!ok || !data.posts?.length) {
+      c.innerHTML = `<div class="feed-loader">Belum ada trending.</div>`; return;
+    }
+    c.innerHTML = data.posts.slice(0,8).map((p, i) => {
+      const preview = (p.content || "").substring(0,60);
+      return `
+        <div class="trending-item" onclick="searchByContent(${JSON.stringify(preview)})">
+          <div class="trending-num">${i+1}</div>
+          <div class="trending-info">
+            <div class="trending-tag">${escHtml(preview)}${p.content?.length>60?"...":""}</div>
+            <div class="trending-count">${p.like_count||0} likes · ${p.reply_count||0} balasan</div>
+          </div>
+        </div>`;
+    }).join("");
+  } catch(e) { c.innerHTML = `<div class="feed-loader">Gagal memuat.</div>`; }
+}
+
+async function doSearch() {
+  const q = document.getElementById("search-input").value.trim();
+  if (!q) return;
+
+  document.getElementById("trending-section").classList.add("hidden");
+  const results = document.getElementById("search-results");
+  results.classList.remove("hidden");
+  document.getElementById("post-results").innerHTML = `<div class="feed-loader">Jelajahi "${escHtml(q)}"...</div>`;
+
+  try {
+    const { ok, data } = await api(`/search?q=${encodeURIComponent(q)}`);
+    if (!ok) { document.getElementById("post-results").innerHTML = `<div class="feed-loader">Gagal mencari.</div>`; return; }
+
+    // Users
+    const usersCard = document.getElementById("user-results-card");
+    const usersEl   = document.getElementById("user-results");
+    if (data.users?.length) {
+      usersEl.innerHTML = data.users.map(u => `
+        <div class="user-result" onclick="window.location.href='/profile.html?id=${u.id}'">
+          <div class="avatar avatar-md">${makeAvatar(u.avatar_url)}</div>
+          <div class="user-result-info">
+            <div style="font-weight:700">@${escHtml(u.username)}</div>
+            <div style="font-size:.82rem;color:var(--text-muted)">${escHtml(u.bio || "Belum ada bio")}</div>
+          </div>
+          <span style="color:var(--rose);font-size:.85rem">Lihat →</span>
+        </div>`).join("");
+      usersCard.classList.remove("hidden");
+    } else {
+      usersCard.classList.add("hidden");
+    }
+
+    // Posts
+    const postEl = document.getElementById("post-results");
+    if (data.posts?.length) {
+      postEl.innerHTML = data.posts.map(p => renderPostCard(p)).join("");
+      attachPostActions(postEl);
+    } else {
+      postEl.innerHTML = `
+        <div class="feed-empty">
+          <div class="feed-empty-icon">🔍</div>
+          <h3>Tidak ada hasil untuk "${escHtml(q)}"</h3>
+          <p>Coba kata kunci yang berbeda</p>
+        </div>`;
+    }
+  } catch { document.getElementById("post-results").innerHTML = `<div class="feed-loader">Gagal mencari.</div>`; }
+}
+loadTrending();
+
+// Search
+function searchByContent(q) {
+  document.getElementById("search-input").value = q;
+  doSearch();
+}
+
+document.getElementById("btn-search").addEventListener("click", doSearch);
+document.getElementById("search-input").addEventListener("keydown", e => { if(e.key==="Enter") doSearch(); });
+
+document.querySelectorAll(".tag-chip").forEach(chip => {
+  chip.addEventListener("click", () => {
+    document.getElementById("search-input").value = chip.textContent;
+    doSearch();
+  });
+});
+
+async function doSearch() {
+  const q = document.getElementById("search-input").value.trim();
+  if (!q) return;
+
+  document.getElementById("trending-section").classList.add("hidden");
+  const results = document.getElementById("search-results");
+  results.classList.remove("hidden");
+  document.getElementById("post-results").innerHTML = `<div class="feed-loader">Jelajahi...</div>`;
+
+  try {
+    const { ok, data } = await api(`/search?q=${encodeURIComponent(q)}`);
+    if (!ok) return;
+
+    // Users
+    const usersEl = document.getElementById("user-results");
+    if (data.users?.length) {
+      usersEl.innerHTML = data.users.map(u => `
+        <div class="user-result" onclick="window.location.href='/profile.html?id=${u.id}'">
+          <div class="avatar avatar-md">${makeAvatar(u.avatar_url)}</div>
+          <div class="user-result-info">
+            <div style="font-weight:700">@${escHtml(u.username)}</div>
+            <div style="font-size:.82rem;color:var(--text-muted)">${u.bio || "Belum ada bio"}</div>
+          </div>
+        </div>`).join("");
+      document.getElementById("user-results-card").classList.remove("hidden");
+    } else {
+      document.getElementById("user-results-card").classList.add("hidden");
+    }
+
+    // Posts
+    const postEl = document.getElementById("post-results");
+    if (data.posts?.length) {
+      postEl.innerHTML = data.posts.map(p => renderPostCard(p)).join("");
+      attachPostActions(postEl);
+    } else {
+      postEl.innerHTML = `
+        <div class="feed-empty">
+          <div class="feed-empty-icon">🔍</div>
+          <h3>Tidak ada hasil</h3>
+          <p>Coba kata kunci yang berbeda</p>
+        </div>`;
+    }
+  } catch { document.getElementById("post-results").innerHTML = `<div class="feed-loader">Gagal mencari.</div>`; }
+}
+</script>
+</body>
+</html>

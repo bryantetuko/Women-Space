@@ -1,0 +1,10 @@
+flask
+flask-cors
+flask-jwt-extended
+werkzeug
+pillow
+opencv-python-headless
+numpy
+pandas
+gunicorn
+tensorflow==2.19.0

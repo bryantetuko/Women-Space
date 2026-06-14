@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Notifikasi — Womenspace 🌸</title>
+<link rel="stylesheet" href="style.css"/>
+<style>
+  .app-header {
+    position:sticky; top:0; z-index:50;
+    background:rgba(253,247,242,.92); backdrop-filter:blur(12px);
+    border-bottom:1.5px solid var(--border);
+    padding:16px 24px; margin:-28px -24px 0;
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .app-header h1 { font-family:var(--font-display); font-size:1.5rem; font-weight:700; }
+
+  .notif-item {
+    display:flex; align-items:flex-start; gap:12px;
+    padding:14px 20px; border-bottom:1px solid var(--border-light);
+    cursor:pointer; transition:background var(--transition);
+  }
+  .notif-item:hover { background:var(--blush); }
+  .notif-item.unread { background:var(--rose-ultra); }
+
+  .notif-dot {
+    width:9px; height:9px; border-radius:50%;
+    background:var(--rose); flex-shrink:0; margin-top:5px;
+  }
+  .notif-gap { width:9px; flex-shrink:0; }
+
+  .notif-body { flex:1; min-width:0; }
+  .notif-text { font-size:.92rem; line-height:1.5; }
+  .notif-text strong { color:var(--rose); cursor:pointer; }
+  .notif-text strong:hover { text-decoration:underline; }
+  .notif-preview {
+    font-size:.82rem; color:var(--text-muted); margin-top:4px;
+    background:var(--cream-dark); padding:6px 10px;
+    border-radius:var(--radius-xs); border-left:2px solid var(--rose-light);
+  }
+  .notif-time { font-size:.76rem; color:var(--text-light); margin-top:4px; }
+
+  .empty-state {
+    text-align:center; padding:60px 20px;
+    color:var(--text-muted);
+  }
+  .empty-icon { font-size:3rem; margin-bottom:12px; }
+
+  /* Tab fix — 4 tab */
+  .tab-indicator { width:25% !important; }
+</style>
+</head>
+<body>
+<div class="app-layout">
+  <div id="navbar-mount"></div>
+
+  <main class="app-main">
+    <div class="app-header">
+      <h1>Notifikasi 🔔</h1>
+      <button class="btn btn-ghost btn-sm" id="btn-read-all">Tandai semua dibaca</button>
+    </div>
+
+    <!-- 4 Tabs -->
+    <div class="tabs" style="margin-top:0">
+      <button class="tab-btn active" data-tab="all" data-idx="0">Semua</button>
+      <button class="tab-btn" data-tab="like"  data-idx="1">❤️ Suka</button>
+      <button class="tab-btn" data-tab="reply" data-idx="2">💬 Balasan</button>
+      <button class="tab-btn" data-tab="follow" data-idx="3">👤 Pengikut</button>
+      <div class="tab-indicator" id="notif-bar" style="width:25%;left:0"></div>
+    </div>
+
+    <div id="notif-container">
+      <div class="feed-loader">Memuat notifikasi...</div>
+    </div>
+  </main>
+</div>
+
+<!-- Post Detail Modal (untuk lihat komentar) -->
+<div class="modal-overlay hidden" id="modal-post">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-header">
+      <h3>Postingan 📝</h3>
+      <button class="modal-close" id="close-post-modal">✕</button>
+    </div>
+    <div id="modal-post-content"></div>
+    <div style="border-top:1px solid var(--border);margin-top:14px;padding-top:14px">
+      <h4 style="font-size:.9rem;font-weight:700;color:var(--text-muted);margin-bottom:12px">Balasan</h4>
+      <div id="modal-replies"></div>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="hidden"></div>
+<script src="js/api.js"></script>
+<script>
+requireAuth();
+document.getElementById("navbar-mount").innerHTML = renderNavbar("notifications");
+
+let currentTab = "all";
+
+// Tabs
+document.querySelectorAll(".tab-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    currentTab = btn.dataset.tab;
+    const idx   = parseInt(btn.dataset.idx);
+    document.getElementById("notif-bar").style.left = (idx * 25) + "%";
+    loadNotifs();
+  });
+});
+
+const icons = { like:"❤️", reply:"💬", follow:"👤", repost:"🔁" };
+const texts = {
+  like  : "menyukai postinganmu",
+  reply : "membalas postinganmu",
+  follow: "mulai mengikutimu",
+  repost: "merepost postinganmu"
+};
+
+async function loadNotifs() {
+  const c = document.getElementById("notif-container");
+  c.innerHTML = `<div class="feed-loader">Memuat...</div>`;
+
+  const { ok, data } = await api(`/notifications?type=${currentTab}`);
+
+  if (!ok) { c.innerHTML = `<div class="empty-state"><div class="empty-icon">⚠️</div><p>Gagal memuat notifikasi</p></div>`; return; }
+  if (!data.notifications?.length) {
+    c.innerHTML = `<div class="empty-state"><div class="empty-icon">🔔</div><h3>Belum ada notifikasi</h3><p>Belum ada aktivitas di sini</p></div>`;
+    return;
+  }
+
+  c.innerHTML = data.notifications.map(n => `
+    <div class="notif-item ${n.is_read ? "" : "unread"}"
+         onclick="handleNotifClick('${n.type}','${n.ref_id || ""}','${n.id}')">
+      ${!n.is_read ? '<div class="notif-dot"></div>' : '<div class="notif-gap"></div>'}
+      <div class="avatar avatar-sm">${makeAvatar(n.actor_avatar)}</div>
+      <div class="notif-body">
+        <div class="notif-text">
+          ${icons[n.type] || "🌸"}
+          <strong onclick="event.stopPropagation();window.location.href='/profile.html?id=${n.actor_id}'">
+            @${escHtml(n.actor_username)}
+          </strong>
+          ${texts[n.type] || "berinteraksi denganmu"}
+        </div>
+        ${n.preview ? `<div class="notif-preview">"${escHtml(n.preview)}"</div>` : ""}
+        <div class="notif-time">${formatTime(n.created_at)}</div>
+      </div>
+    </div>`).join("");
+
+  // Update dot navbar
+  updateNavDots(data.unread_count || 0, 0);
+}
+
+async function handleNotifClick(type, refId, notifId) {
+  // Tandai dibaca
+  await api(`/notifications/${notifId}/read`, { method:"POST" });
+
+  if (type === "follow") {
+    window.location.href = `/profile.html?id=${refId}`;
+  } else if (refId) {
+    // Tampilkan postingan + replies di modal
+    openPostModal(refId);
+  }
+}
+
+async function openPostModal(postId) {
+  document.getElementById("modal-post").classList.remove("hidden");
+  document.getElementById("modal-post-content").innerHTML = `<div class="feed-loader">Memuat...</div>`;
+  document.getElementById("modal-replies").innerHTML = "";
+
+  // Load post
+  const { ok, data } = await api(`/posts/${postId}`);
+  if (ok && data) {
+    document.getElementById("modal-post-content").innerHTML = renderPostCard(data);
+    attachPostActions(document.getElementById("modal-post-content"));
+  }
+
+  // Load replies
+  const r = await api(`/posts/${postId}/replies`);
+  if (r.ok && r.data.replies?.length) {
+    document.getElementById("modal-replies").innerHTML =
+      r.data.replies.map(reply => renderPostCard(reply)).join("");
+    attachPostActions(document.getElementById("modal-replies"));
+  } else {
+    document.getElementById("modal-replies").innerHTML =
+      `<p style="color:var(--text-muted);font-size:.88rem">Belum ada balasan.</p>`;
+  }
+}
+
+document.getElementById("close-post-modal").addEventListener("click", () => {
+  document.getElementById("modal-post").classList.add("hidden");
+});
+
+document.getElementById("btn-read-all").addEventListener("click", async () => {
+  await api("/notifications/read-all", { method:"POST" });
+  toast("✅ Semua notifikasi dibaca", "success");
+  loadNotifs();
+});
+
+// Update titik merah navbar
+function updateNavDots(notifCount, dmCount) {
+  const notifDot = document.getElementById("nav-notif-dot");
+  if (notifDot) notifDot.classList.toggle("hidden", notifCount === 0);
+}
+
+loadNotifs();
+</script>
+</body>
+</html>

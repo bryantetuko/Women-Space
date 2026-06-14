@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Daftar — Womenspace 🌸</title>
+<link rel="stylesheet" href="style.css"/>
+<style>
+  body { display:flex; min-height:100vh; }
+  .auth-split { display:flex; width:100%; min-height:100vh; }
+  .auth-brand {
+    flex:0 0 38%;
+    background:linear-gradient(145deg,#C8738A 0%,#E8A0B0 55%,#F5C6D3 100%);
+    position:relative; overflow:hidden;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .brand-blob { position:absolute; width:400px; height:400px; background:rgba(255,255,255,.1); border-radius:60% 40% 70% 30%; top:-80px; left:-80px; animation:blobFloat 9s ease-in-out infinite; }
+  @keyframes blobFloat { 0%,100%{transform:translate(0,0) rotate(0deg)}33%{transform:translate(20px,15px) rotate(6deg)}66%{transform:translate(-15px,20px) rotate(-4deg)} }
+  .brand-content { position:relative; z-index:2; text-align:center; color:#fff; padding:40px; }
+  .brand-mark { font-size:4rem; display:inline-block; animation:spin 20s linear infinite; margin-bottom:16px; }
+  .brand-title { font-family:var(--font-display); font-size:2.6rem; font-weight:900; margin-bottom:12px; }
+  .brand-sub { font-size:.97rem; line-height:1.7; opacity:.9; max-width:260px; margin:0 auto; }
+
+  .auth-form-panel {
+    flex:1; display:flex; flex-direction:column; justify-content:center;
+    padding:48px 56px; background:var(--cream); overflow-y:auto;
+  }
+  .auth-header { margin-bottom:28px; }
+  .auth-header h2 { font-family:var(--font-display); font-size:1.9rem; font-weight:700; margin-bottom:6px; }
+  .auth-header p { color:var(--text-muted); font-size:.95rem; }
+
+  .reg-step { display:none; animation:fadeUp .3s ease; }
+  .reg-step.active { display:block; }
+
+  .face-preview-wrap { text-align:center; margin-bottom:16px; }
+  .face-preview-wrap img { max-height:200px; border-radius:var(--radius); margin:0 auto 12px; object-fit:cover; box-shadow:var(--shadow); }
+
+  .auth-footer { margin-top:20px; text-align:center; font-size:.9rem; color:var(--text-muted); }
+  .auth-footer a { color:var(--rose); font-weight:600; }
+
+  .input-wrap { position:relative; }
+  .input-wrap input { padding-left:42px; }
+  .input-icon { position:absolute; left:14px; top:50%; transform:translateY(-50%); font-size:1rem; color:var(--text-light); pointer-events:none; }
+  .toggle-pw { position:absolute; right:14px; top:50%; transform:translateY(-50%); cursor:pointer; color:var(--text-light); background:none; border:none; font-size:1rem; }
+
+  .btn-back-step { background:none; color:var(--text-muted); font-size:.9rem; margin-bottom:14px; display:inline-flex; align-items:center; gap:6px; cursor:pointer; border:none; font-family:inherit; }
+  .btn-back-step:hover { color:var(--rose); }
+
+  /* Action buttons bawah */
+  .verify-actions { display:flex; flex-direction:column; gap:10px; margin-top:4px; }
+
+  @media (max-width:768px) {
+    .auth-split { flex-direction:column; }
+    .auth-brand { flex:0 0 160px; }
+    .auth-form-panel { padding:28px 20px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="auth-split">
+  <!-- Brand -->
+  <div class="auth-brand">
+    <div class="brand-blob"></div>
+    <div class="brand-content">
+      <div class="brand-mark">✿</div>
+      <h1 class="brand-title">Bergabung</h1>
+      <p class="brand-sub">Jadilah bagian dari komunitas perempuan yang kuat dan suportif 🌸</p>
+    </div>
+  </div>
+
+  <!-- Form -->
+  <div class="auth-form-panel">
+    <div class="auth-header">
+      <h2>Buat akun baru ✨</h2>
+      <p>Khusus untuk perempuan — verifikasi wajah diperlukan</p>
+    </div>
+
+    <!-- Step indicator -->
+    <div class="step-indicator">
+      <div class="step-dot active" id="dot-1">1</div>
+      <div class="step-line" id="line-1"></div>
+      <div class="step-dot" id="dot-2">2</div>
+    </div>
+
+    <!-- ── STEP 1: Data Akun ── -->
+    <div class="reg-step active" id="step-1">
+      <p class="step-label">Langkah 1 dari 2 — Data Akun</p>
+
+      <div class="field-group">
+        <label>Username</label>
+        <div class="input-wrap">
+          <span class="input-icon">👤</span>
+          <input type="text" id="reg-username" placeholder="pilih username unikmu" autocomplete="username"/>
+        </div>
+      </div>
+      <div class="field-group">
+        <label>Email</label>
+        <div class="input-wrap">
+          <span class="input-icon">✉️</span>
+          <input type="email" id="reg-email" placeholder="email@kamu.com" autocomplete="email"/>
+        </div>
+      </div>
+      <div class="field-group">
+        <label>Password <small>(min. 8 karakter)</small></label>
+        <div class="input-wrap">
+          <span class="input-icon">🔑</span>
+          <input type="password" id="reg-password" placeholder="••••••••" autocomplete="new-password"/>
+          <button class="toggle-pw" id="toggle-reg-pw" type="button">👁️</button>
+        </div>
+      </div>
+
+      <div id="step1-error" class="form-error hidden"></div>
+      <button class="btn btn-primary btn-full" id="btn-next">
+        Lanjut Verifikasi Wajah →
+      </button>
+
+      <div class="auth-footer">
+        Sudah punya akun? <a href="/login.html">Masuk di sini</a>
+      </div>
+    </div>
+
+    <!-- ── STEP 2: Verifikasi Wajah ── -->
+    <div class="reg-step" id="step-2">
+      <button class="btn-back-step" id="btn-back">← Kembali ubah data akun</button>
+      <p class="step-label">Langkah 2 dari 2 — Verifikasi Wajah</p>
+
+      <!-- Upload area -->
+      <div class="face-upload-area" id="face-upload-area"
+           onclick="document.getElementById('face-input').click()">
+        <div style="font-size:2.5rem;margin-bottom:10px">📸</div>
+        <p style="font-weight:600;margin-bottom:6px">Unggah foto wajahmu</p>
+        <p style="font-size:.85rem;color:var(--text-muted)">
+          Pastikan wajah terlihat jelas, pencahayaan cukup, tidak pakai masker
+        </p>
+        <p style="font-size:.78rem;color:var(--rose-light);margin-top:8px">
+          Format: JPG, PNG, WEBP
+        </p>
+        <input type="file" id="face-input" accept="image/jpeg,image/png,image/webp" hidden/>
+      </div>
+
+      <!-- Preview setelah foto dipilih -->
+      <div class="face-preview-wrap hidden" id="face-preview-wrap">
+        <img id="face-preview" alt="Preview wajah"/>
+        <div id="face-status" class="face-status"></div>
+      </div>
+
+      <div id="step2-error" class="form-error hidden"></div>
+
+      <!-- Action buttons -->
+      <div class="verify-actions">
+        <button class="btn btn-primary btn-full" id="btn-verify">
+          🌸 Verifikasi & Buat Akun
+        </button>
+        <!-- Tombol ganti foto — muncul setelah gagal -->
+        <button class="btn btn-outline btn-full hidden" id="btn-ganti-foto">
+          📷 Ganti Foto
+        </button>
+      </div>
+
+      <p style="font-size:.78rem;color:var(--text-muted);text-align:center;margin-top:14px">
+        🔒 Foto hanya digunakan untuk verifikasi gender, tidak disimpan permanen
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- Success Overlay -->
+<div id="success-overlay" class="hidden"
+     style="position:fixed;inset:0;z-index:9999;
+            background:linear-gradient(135deg,#F5E0E5 0%,#FDF7F2 100%);
+            display:flex;align-items:center;justify-content:center;">
+  <div style="text-align:center;padding:48px 40px;max-width:440px;width:90%;
+              background:#fff;border-radius:24px;
+              box-shadow:0 20px 60px rgba(200,115,138,.25);
+              animation:slideUp .4s ease;">
+    <div style="font-size:4rem;margin-bottom:16px;display:inline-block;animation:pop .5s ease">🌸</div>
+    <h2 style="font-family:'Playfair Display',serif;font-size:1.8rem;color:#2D2020;margin-bottom:10px;">
+      Akun Berhasil Dibuat!
+    </h2>
+    <p style="color:#8A7070;margin-bottom:6px;">
+      Halo, <strong id="overlay-username" style="color:#C8738A"></strong>! 👋
+    </p>
+    <p style="color:#8A7070;font-size:.92rem;line-height:1.7;margin-bottom:24px;">
+      Kamu sudah resmi bergabung di <strong>Womenspace</strong>.<br/>
+      Ruang aman khusus perempuan.
+    </p>
+    <div style="background:#F5E0E5;color:#C8738A;padding:12px 24px;border-radius:50px;
+                font-weight:700;margin-bottom:20px;display:inline-block;">
+      Masuk otomatis dalam <span id="countdown">5</span> detik...
+    </div><br/>
+    <button class="btn btn-primary" id="btn-enter" style="margin-top:8px">
+      Masuk Sekarang →
+    </button>
+  </div>
+</div>
+
+<script src="js/api.js?v=mediafix2"></script>
+<script>
+redirectIfLoggedIn();
+
+// Toggle password
+document.getElementById("toggle-reg-pw").addEventListener("click", () => {
+  const inp = document.getElementById("reg-password");
+  inp.type  = inp.type === "password" ? "text" : "password";
+});
+
+// ── Step 1 → Step 2 ────────────────────────────
+document.getElementById("btn-next").addEventListener("click", () => {
+  clearError("step1-error");
+  const username = document.getElementById("reg-username").value.trim();
+  const email    = document.getElementById("reg-email").value.trim();
+  const password = document.getElementById("reg-password").value;
+
+  if (!username)                      { showError("step1-error","Username wajib diisi."); return; }
+  if (username.length < 3)            { showError("step1-error","Username minimal 3 karakter."); return; }
+  if (!email || !email.includes("@")) { showError("step1-error","Email tidak valid."); return; }
+  if (password.length < 8)            { showError("step1-error","Password minimal 8 karakter."); return; }
+
+  goToStep2();
+});
+
+function goToStep2() {
+  document.getElementById("step-1").classList.remove("active");
+  document.getElementById("step-2").classList.add("active");
+  document.getElementById("dot-1").classList.replace("active","done");
+  document.getElementById("line-1").classList.add("done");
+  document.getElementById("dot-2").classList.add("active");
+  resetFotoState();
+}
+
+// ── Kembali ke Step 1 ──────────────────────────
+document.getElementById("btn-back").addEventListener("click", () => {
+  document.getElementById("step-2").classList.remove("active");
+  document.getElementById("step-1").classList.add("active");
+  document.getElementById("dot-2").classList.remove("active");
+  document.getElementById("line-1").classList.remove("done");
+  document.getElementById("dot-1").classList.replace("done","active");
+});
+
+// ── Reset state foto ───────────────────────────
+function resetFotoState() {
+  document.getElementById("face-input").value        = "";
+  document.getElementById("face-preview-wrap").classList.add("hidden");
+  document.getElementById("face-upload-area").classList.remove("hidden");
+  document.getElementById("face-status").className   = "face-status";
+  document.getElementById("face-status").textContent = "";
+  document.getElementById("btn-ganti-foto").classList.add("hidden");
+  document.getElementById("btn-verify").textContent  = "🌸 Verifikasi & Buat Akun";
+  clearError("step2-error");
+}
+
+// ── Preview foto setelah dipilih ───────────────
+document.getElementById("face-input").addEventListener("change", () => {
+  const file = document.getElementById("face-input").files[0];
+  if (!file) return;
+  document.getElementById("face-preview").src = URL.createObjectURL(file);
+  document.getElementById("face-preview-wrap").classList.remove("hidden");
+  document.getElementById("face-upload-area").classList.add("hidden");
+  document.getElementById("face-status").className   = "face-status";
+  document.getElementById("face-status").textContent = "";
+  document.getElementById("btn-ganti-foto").classList.add("hidden");
+  document.getElementById("btn-verify").textContent  = "🌸 Verifikasi & Buat Akun";
+  clearError("step2-error");
+});
+
+// ── Tombol Ganti Foto ──────────────────────────
+document.getElementById("btn-ganti-foto").addEventListener("click", () => {
+  resetFotoState();
+  // Langsung buka file picker
+  setTimeout(() => document.getElementById("face-input").click(), 100);
+});
+
+// ── Verifikasi & Register ──────────────────────
+document.getElementById("btn-verify").addEventListener("click", async () => {
+  clearError("step2-error");
+  const file = document.getElementById("face-input").files[0];
+  if (!file) {
+    showError("step2-error","Pilih foto wajahmu terlebih dahulu.");
+    return;
+  }
+
+  const username = document.getElementById("reg-username").value.trim();
+  const email    = document.getElementById("reg-email").value.trim();
+  const password = document.getElementById("reg-password").value;
+
+  const statusEl = document.getElementById("face-status");
+  const btn      = document.getElementById("btn-verify");
+  const backBtn  = document.getElementById("btn-back");
+  const gantiBtn = document.getElementById("btn-ganti-foto");
+
+  function setStatus(type, msg) {
+    statusEl.className   = `face-status ${type}`;
+    statusEl.textContent = msg;
+  }
+
+  // Disable semua tombol
+  btn.disabled = true; backBtn.disabled = true;
+  btn.textContent = "⏳ Menganalisis wajah...";
+  setStatus("loading", "⏳ AI sedang menganalisis wajahmu... mohon tunggu");
+
+  // ── 1. Verifikasi wajah ───────────────────────
+  let vRes;
+  try {
+    const faceForm = new FormData();
+    faceForm.append("face_photo", file);
+    vRes = await api("/auth/verify-face", { method:"POST", body:faceForm });
+  } catch {
+    setStatus("error","❌ Tidak bisa terhubung ke server. Pastikan backend jalan.");
+    btn.disabled = false; backBtn.disabled = false;
+    btn.textContent = "🌸 Verifikasi & Buat Akun";
+    return;
+  }
+
+  // Verifikasi GAGAL
+  if (!vRes.ok || !vRes.data.allowed) {
+    setStatus("error", "❌ " + (vRes.data?.message || "Verifikasi wajah gagal."));
+    btn.disabled = false; backBtn.disabled = false;
+    btn.textContent = "🔄 Coba Lagi";
+    // Tampilkan tombol ganti foto
+    gantiBtn.classList.remove("hidden");
+    return;
+  }
+
+  // Verifikasi BERHASIL
+  gantiBtn.classList.add("hidden");
+  setStatus("success", `✅ Wajah terverifikasi! (${(vRes.data.confidence*100).toFixed(1)}% perempuan)`);
+  btn.textContent = "⏳ Membuat akun...";
+
+  // ── 2. Register ───────────────────────────────
+  let rRes;
+  try {
+    rRes = await api("/auth/register", {
+      method:"POST",
+      body: JSON.stringify({ username, email, password, ml_verified:true })
+    });
+  } catch {
+    setStatus("error","❌ Gagal membuat akun. Coba lagi.");
+    btn.disabled = false; backBtn.disabled = false;
+    btn.textContent = "🌸 Verifikasi & Buat Akun";
+    return;
+  }
+
+  btn.disabled = false; backBtn.disabled = false;
+  btn.textContent = "🌸 Verifikasi & Buat Akun";
+
+  if (!rRes.ok) {
+    setStatus("error","❌ " + (rRes.data?.error || "Pendaftaran gagal."));
+    return;
+  }
+
+  // ── SUCCESS ───────────────────────────────────
+  Auth.setToken(rRes.data.token);
+  const meRes = await api("/auth/me");
+  if (meRes.ok) Auth.setUser(meRes.data);
+
+  const displayName = Auth.getUser()?.username || username;
+  document.getElementById("overlay-username").textContent = "@" + displayName;
+  document.getElementById("success-overlay").classList.remove("hidden");
+
+  // Countdown
+  let count = 5;
+  const numEl = document.getElementById("countdown");
+  const timer = setInterval(() => {
+    count--;
+    numEl.textContent = count;
+    if (count <= 0) { clearInterval(timer); window.location.href = "/home.html"; }
+  }, 1000);
+
+  document.getElementById("btn-enter").addEventListener("click", () => {
+    clearInterval(timer);
+    window.location.href = "/home.html";
+  });
+});
+
+// Enter key di step 1
+["reg-username","reg-email","reg-password"].forEach(id => {
+  document.getElementById(id).addEventListener("keydown", e => {
+    if (e.key === "Enter") document.getElementById("btn-next").click();
+  });
+});
+</script>
+</body>
+</html>

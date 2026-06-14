@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Konsultasi — Womenspace 🌸</title>
+<link rel="stylesheet" href="style.css"/>
+<style>
+  .app-header { position:sticky;top:0;z-index:50;background:rgba(253,247,242,.92);backdrop-filter:blur(12px);border-bottom:1.5px solid var(--border);padding:16px 24px;margin:-28px -24px 20px; }
+  .app-header h1 { font-family:var(--font-display);font-size:1.5rem;font-weight:700; }
+  .psikolog-card { background:var(--white);border:1.5px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:12px;display:flex;gap:16px;transition:all var(--transition);cursor:pointer;box-shadow:var(--shadow-sm); }
+  .psikolog-card:hover { border-color:var(--rose-light);box-shadow:var(--shadow);transform:translateY(-2px); }
+  .rating { color:#F5A623;font-size:.88rem;font-weight:700; }
+  .session-card { background:var(--rose-ultra);border:1.5px solid var(--rose-pale);border-radius:var(--radius);padding:16px;margin-bottom:10px; }
+  .session-status { display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:var(--radius-full);font-size:.78rem;font-weight:700; }
+  .status-scheduled { background:#fef3e2;color:var(--warning); }
+  .status-done { background:#d4f5e9;color:var(--success); }
+  .filter-chips { display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin-bottom:20px;scrollbar-width:none; }
+  .filter-chip { flex-shrink:0;padding:6px 16px;border-radius:var(--radius-full);background:var(--cream-dark);color:var(--text-muted);font-size:.83rem;font-weight:600;cursor:pointer;transition:all var(--transition); }
+  .filter-chip.active,.filter-chip:hover { background:var(--rose);color:#fff; }
+  .hero-banner { background:linear-gradient(135deg,#C8738A 0%,#E8A0B0 100%);border-radius:var(--radius);padding:24px;margin-bottom:24px;color:#fff;position:relative;overflow:hidden; }
+  .hero-banner::after { content:'🧠';position:absolute;right:20px;top:50%;transform:translateY(-50%);font-size:5rem;opacity:.15; }
+  .hero-banner h2 { font-family:var(--font-display);font-size:1.4rem;font-weight:700;margin-bottom:6px; }
+  .hero-banner p { font-size:.9rem;opacity:.9;max-width:280px; }
+</style>
+</head>
+<body>
+<div class="app-layout">
+  <div id="navbar-mount"></div>
+  <main class="app-main">
+    <div class="app-header">
+      <h1>Konsultasi 🧠</h1>
+    </div>
+
+    <!-- Hero -->
+    <div class="hero-banner">
+      <h2>Curhat & Konsultasi</h2>
+      <p>Konsultasi langsung atau booking sesi dengan psikolog berpengalaman yang peduli.</p>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="cari">Cari Psikolog</button>
+      <button class="tab-btn" data-tab="sesi">Sesi Saya</button>
+      <div class="tab-indicator" style="width:50%" id="konsul-tab-bar"></div>
+    </div>
+
+    <!-- Panel: Cari Psikolog -->
+    <div id="panel-cari">
+      <!-- Filter -->
+      <div class="filter-chips">
+        <div class="filter-chip active" data-spec="semua">Semua</div>
+        <div class="filter-chip" data-spec="depresi">Depresi & Kecemasan</div>
+        <div class="filter-chip" data-spec="hubungan">Hubungan</div>
+        <div class="filter-chip" data-spec="trauma">Trauma</div>
+        <div class="filter-chip" data-spec="karir">Karir & Stres</div>
+        <div class="filter-chip" data-spec="remaja">Remaja</div>
+      </div>
+
+      <div id="psikolog-list"><div class="feed-loader">Memuat daftar psikolog...</div></div>
+    </div>
+
+    <!-- Panel: Sesi Saya -->
+    <div id="panel-sesi" class="hidden">
+      <div id="sesi-list"><div class="feed-loader">Memuat sesi...</div></div>
+    </div>
+  </main>
+</div>
+
+<!-- Modal Detail Psikolog -->
+<div class="modal-overlay hidden" id="modal-psikolog">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-header">
+      <h3 id="modal-psikolog-name">Dr. ...</h3>
+      <button class="modal-close" id="close-modal-psikolog">✕</button>
+    </div>
+    <div style="display:flex;gap:16px;margin-bottom:16px">
+      <div class="avatar avatar-lg" id="modal-psikolog-avatar">👩‍⚕️</div>
+      <div>
+        <div class="rating" id="modal-rating">⭐⭐⭐⭐⭐</div>
+        <div style="font-size:.85rem;color:var(--text-muted);margin-top:4px" id="modal-spec"></div>
+        <div style="font-size:.85rem;color:var(--text-muted);margin-top:2px" id="modal-exp"></div>
+      </div>
+    </div>
+    <p id="modal-bio" style="font-size:.92rem;line-height:1.65;color:var(--text-muted);margin-bottom:20px"></p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <button class="btn btn-primary" id="btn-chat-now">💬 Konsultasi Langsung</button>
+      <button class="btn btn-outline" id="btn-booking">📅 Booking Sesi</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Booking -->
+<div class="modal-overlay hidden" id="modal-booking">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>📅 Booking Sesi</h3>
+      <button class="modal-close" id="close-booking">✕</button>
+    </div>
+    <div class="field-group">
+      <label>Tanggal</label>
+      <input type="date" id="booking-date" min=""/>
+    </div>
+    <div class="field-group">
+      <label>Waktu</label>
+      <select id="booking-time">
+        <option>09:00</option><option>10:00</option><option>11:00</option>
+        <option>13:00</option><option>14:00</option><option>15:00</option>
+        <option>16:00</option><option>19:00</option><option>20:00</option>
+      </select>
+    </div>
+    <div class="field-group">
+      <label>Topik yang ingin dibahas</label>
+      <textarea id="booking-topic" placeholder="Ceritakan singkat apa yang ingin kamu konsultasikan..." rows="3"></textarea>
+    </div>
+    <div class="field-group">
+      <label>Jenis Sesi</label>
+      <select id="booking-type">
+        <option value="chat">Mengobrol (30 menit)</option>
+        <option value="video">Obrolan Video (45 menit)</option>
+      </select>
+    </div>
+    <div id="booking-error" class="form-error hidden"></div>
+    <button class="btn btn-primary btn-full" id="btn-confirm-booking">Konfirmasi Pesanan</button>
+  </div>
+</div>
+
+<div id="toast" class="hidden"></div>
+<script src="js/api.js"></script>
+<script>
+requireAuth();
+document.getElementById("navbar-mount").innerHTML = renderNavbar("konsultasi");
+
+// Set min date booking ke besok
+const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate()+1);
+document.getElementById("booking-date").min = tomorrow.toISOString().split("T")[0];
+
+// Tabs
+let currentPsikologId   = null;
+let currentPsikologName = "";
+document.querySelectorAll(".tab-btn").forEach((btn, i) => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    document.getElementById("konsul-tab-bar").style.left = i === 0 ? "0" : "50%";
+    if (btn.dataset.tab === "cari") {
+      document.getElementById("panel-cari").classList.remove("hidden");
+      document.getElementById("panel-sesi").classList.add("hidden");
+    } else {
+      document.getElementById("panel-cari").classList.add("hidden");
+      document.getElementById("panel-sesi").classList.remove("hidden");
+      loadSesi();
+    }
+  });
+});
+
+// Filter spec
+document.querySelectorAll(".filter-chip").forEach(chip => {
+  chip.addEventListener("click", () => {
+    document.querySelectorAll(".filter-chip").forEach(c => c.classList.remove("active"));
+    chip.classList.add("active");
+    loadPsikolog(chip.dataset.spec);
+  });
+});
+
+// Load psikolog
+async function loadPsikolog(spec = "semua") {
+  const list = document.getElementById("psikolog-list");
+  list.innerHTML = `<div class="feed-loader">Memuat...</div>`;
+  const { ok, data } = await api(`/konsultasi/psikolog?spec=${spec}`);
+  if (!ok || !data.psikolog?.length) {
+    list.innerHTML = `<div class="feed-empty"><div class="feed-empty-icon">🧠</div><h3>Belum ada psikolog tersedia</h3></div>`;
+    return;
+  }
+  list.innerHTML = data.psikolog.map(p => `
+    <div class="psikolog-card" onclick="openPsikologModal(${JSON.stringify(p).replace(/"/g,'&quot;')})">
+      <div class="avatar avatar-lg">${p.avatar ? makeAvatar(p.avatar) : "👩‍⚕️"}</div>
+      <div class="psikolog-info">
+        <div class="psikolog-name">${escHtml(p.name)}</div>
+        <div class="psikolog-spec">${escHtml(p.specialization)}</div>
+        <div class="psikolog-meta">
+          <span class="badge badge-rose">⭐ ${p.rating}</span>
+          <span class="badge badge-success">${p.experience} thn pengalaman</span>
+          <span class="badge badge-anon">${p.session_count} sesi</span>
+        </div>
+      </div>
+      <div style="text-align:right;flex-shrink:0">
+        <div style="font-size:.75rem;color:var(--text-muted)">Mulai dari</div>
+        <div style="font-weight:700;color:var(--rose)">Rp ${p.price?.toLocaleString("id-ID")||"Gratis"}</div>
+        <span style="font-size:.75rem;color:${p.available?"var(--success)":"var(--danger)"}">● ${p.available?"Tersedia":"Tidak Tersedia"}</span>
+      </div>
+    </div>`).join("");
+}
+
+function openPsikologModal(p) {
+  currentPsikologId   = p.id;
+  currentPsikologName = p.name;
+  document.getElementById("modal-psikolog-name").textContent = p.name;
+  document.getElementById("modal-psikolog-avatar").innerHTML = p.avatar ? makeAvatar(p.avatar) : "👩‍⚕️";
+  document.getElementById("modal-rating").textContent = "⭐".repeat(Math.round(p.rating||5));
+  document.getElementById("modal-spec").textContent = p.specialization;
+  document.getElementById("modal-exp").textContent = `${p.experience} tahun pengalaman · ${p.session_count} sesi`;
+  document.getElementById("modal-bio").textContent = p.bio || "Psikolog profesional berpengalaman.";
+  document.getElementById("modal-psikolog").classList.remove("hidden");
+}
+
+document.getElementById("close-modal-psikolog").addEventListener("click", () => document.getElementById("modal-psikolog").classList.add("hidden"));
+
+document.getElementById("btn-chat-now").addEventListener("click", async () => {
+  document.getElementById("modal-psikolog").classList.add("hidden");
+  const { ok, data } = await api("/dm/conversations", { method:"POST", body:JSON.stringify({ partner_id:currentPsikologId, type:"konsultasi" }) });
+  if (ok) window.location.href = `/dm.html?conv=${data.conversation_id}`;
+  else toast("Gagal memulai chat.", "error");
+});
+
+document.getElementById("btn-booking").addEventListener("click", () => {
+  document.getElementById("modal-psikolog").classList.add("hidden");
+  clearError("booking-error");
+  document.getElementById("modal-booking").classList.remove("hidden");
+});
+document.getElementById("close-booking").addEventListener("click", () => document.getElementById("modal-booking").classList.add("hidden"));
+
+document.getElementById("btn-confirm-booking").addEventListener("click", async () => {
+  clearError("booking-error");
+  const date  = document.getElementById("booking-date").value;
+  const time  = document.getElementById("booking-time").value;
+  const topic = document.getElementById("booking-topic").value.trim();
+  const type  = document.getElementById("booking-type").value;
+  if (!date) { showError("booking-error","Pilih tanggal terlebih dahulu."); return; }
+  if (!topic) { showError("booking-error","Ceritakan topik yang ingin dibahas."); return; }
+
+  const btn = document.getElementById("btn-confirm-booking");
+  btn.disabled = true; btn.textContent = "Memproses...";
+
+  const { ok, data } = await api("/konsultasi/booking", {
+    method:"POST",
+    body: JSON.stringify({
+      psikolog_id  : currentPsikologId,
+      psikolog_name: currentPsikologName,
+      date, time, topic, type
+    })
+  });
+
+  btn.disabled = false; btn.textContent = "Konfirmasi Booking";
+
+  if (!ok) { showError("booking-error", data.error || "Gagal booking. Coba lagi."); return; }
+  document.getElementById("modal-booking").classList.add("hidden");
+  toast("🎉 " + (data.message || "Booking berhasil!"), "success");
+});
+
+// Load sesi
+async function loadSesi() {
+  const list = document.getElementById("sesi-list");
+  list.innerHTML = `<div class="feed-loader">Memuat sesi...</div>`;
+  const { ok, data } = await api("/konsultasi/sessions");
+  if (!ok || !data.sessions?.length) {
+    list.innerHTML = `<div class="feed-empty"><div class="feed-empty-icon">📅</div><h3>Belum ada sesi</h3><p>Booking sesi dengan psikolog sekarang</p></div>`;
+    return;
+  }
+  list.innerHTML = data.sessions.map(s => `
+    <div class="session-card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <div style="font-weight:700">${escHtml(s.psikolog_name)}</div>
+        <span class="session-status ${s.status==="scheduled"?"status-scheduled":"status-done"}">${s.status==="scheduled"?"🕐 Terjadwal":"✅ Selesai"}</span>
+      </div>
+      <div style="font-size:.85rem;color:var(--text-muted)">📅 ${s.date} · ${s.time}</div>
+      <div style="font-size:.85rem;color:var(--text-muted);margin-top:4px">📝 ${escHtml(s.topic)}</div>
+      ${s.status==="scheduled" ? `<button class="btn btn-primary btn-sm" style="margin-top:12px" onclick="window.location.href='/dm.html?conv=${s.conversation_id}'">Masuk Sesi →</button>` : ""}
+    </div>`).join("");
+}
+
+loadPsikolog();
+</script>
+</body>
+</html>

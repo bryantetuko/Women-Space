@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"/>
+<title>ERD — Womenspace</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+  :root {
+    --rose:#C8738A; --rose-pale:#F5E0E5; --rose-dark:#A85970;
+    --purple:#7B5EA7; --teal:#3D9A8A; --amber:#BA7517;
+    --text:#2D2020; --muted:#7A6868; --border:#E8D8DC;
+    --bg:#FDF7F2; --white:#FFFFFF;
+  }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); padding:24px; }
+  h1 { font-size:1.4rem; font-weight:700; color:var(--rose); margin-bottom:4px; }
+  .subtitle { font-size:.85rem; color:var(--muted); margin-bottom:20px; }
+
+  /* Controls */
+  .controls { display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap; align-items:center; }
+  .ctrl-btn { padding:6px 14px; border-radius:99px; border:1.5px solid var(--border); background:var(--white); font-size:.82rem; font-weight:600; cursor:pointer; transition:all .2s; color:var(--text); }
+  .ctrl-btn:hover, .ctrl-btn.active { background:var(--rose); color:#fff; border-color:var(--rose); }
+  .zoom-info { font-size:.78rem; color:var(--muted); margin-left:auto; }
+
+  /* Canvas */
+  #canvas-wrap { overflow:auto; border:1px solid var(--border); border-radius:12px; background:var(--white); position:relative; min-height:600px; }
+  #canvas { position:relative; width:1600px; min-height:900px; padding:32px; }
+
+  /* Table cards */
+  .tbl {
+    position:absolute; background:var(--white);
+    border:1.5px solid var(--border); border-radius:10px;
+    box-shadow:0 2px 12px rgba(200,115,138,.1);
+    min-width:180px; font-size:.78rem;
+    cursor:move; user-select:none;
+    transition:box-shadow .2s;
+  }
+  .tbl:hover { box-shadow:0 4px 20px rgba(200,115,138,.2); }
+  .tbl-head {
+    padding:8px 12px; border-radius:8px 8px 0 0;
+    font-weight:700; font-size:.8rem; color:#fff;
+    display:flex; align-items:center; gap:6px;
+  }
+  .tbl-head-icon { font-size:.9rem; }
+  .tbl-body { padding:6px 0; }
+  .tbl-row {
+    display:flex; align-items:center; gap:6px;
+    padding:3px 12px; font-family:'JetBrains Mono',monospace;
+    font-size:.72rem; color:var(--text);
+    border-bottom:1px solid #F5EAED;
+  }
+  .tbl-row:last-child { border:none; }
+  .tbl-row .pk { color:var(--amber); font-weight:700; font-size:.65rem; background:#FEF3E2; padding:1px 5px; border-radius:3px; }
+  .tbl-row .fk { color:var(--purple); font-weight:700; font-size:.65rem; background:#EDE8F5; padding:1px 5px; border-radius:3px; }
+  .tbl-row .col-type { color:var(--muted); font-size:.67rem; margin-left:auto; }
+
+  /* SVG lines */
+  #svg-layer { position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; overflow:visible; }
+  .rel-line { stroke-dasharray:5,3; stroke-width:1.5; fill:none; opacity:.7; }
+
+  /* Legend */
+  .legend { display:flex; gap:16px; flex-wrap:wrap; margin-bottom:16px; font-size:.8rem; }
+  .legend-item { display:flex; align-items:center; gap:6px; }
+  .legend-dot { width:12px; height:12px; border-radius:3px; }
+</style>
+</head>
+<body>
+
+<h1>Entity Relationship Diagram — Womenspace</h1>
+<p class="subtitle">15 tabel · Klik dan geser tabel untuk mengatur posisi · Scroll untuk navigasi</p>
+
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:#C8738A"></div> Auth & User</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#7B5EA7"></div> Konten & Post</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#3D9A8A"></div> Sosial & Interaksi</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#BA7517"></div> Messaging & DM</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#5A9E6F"></div> Story & Media</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#4A7FB5"></div> Poll & Voting</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#8B6A8A"></div> Konsultasi</div>
+</div>
+
+<div class="controls">
+  <button class="ctrl-btn" onclick="resetLayout()">↺ Reset Layout</button>
+  <button class="ctrl-btn" onclick="printDiagram()">🖨️ Print / PDF</button>
+  <span class="zoom-info">💡 Drag tabel untuk mengatur posisi</span>
+</div>
+
+<div id="canvas-wrap">
+  <div id="canvas">
+    <svg id="svg-layer"></svg>
+  </div>
+</div>
+
+<script>
+const TABLES = [
+  { id:'users', label:'USERS', icon:'👤', color:'#C8738A', x:40, y:40,
+    cols:[
+      {n:'id',t:'TEXT',pk:true},{n:'username',t:'TEXT'},{n:'email',t:'TEXT'},
+      {n:'password',t:'TEXT'},{n:'avatar_url',t:'TEXT'},{n:'bio',t:'TEXT'},
+      {n:'is_psikolog',t:'INT'},{n:'created_at',t:'TEXT'}
+    ]},
+  { id:'posts', label:'POSTS', icon:'📝', color:'#7B5EA7', x:320, y:40,
+    cols:[
+      {n:'id',t:'TEXT',pk:true},{n:'user_id',t:'TEXT',fk:'users'},
+      {n:'content',t:'TEXT'},{n:'media_url',t:'TEXT'},{n:'media_type',t:'TEXT'},
+      {n:'parent_id',t:'TEXT',fk:'posts'},{n:'repost_of',t:'TEXT',fk:'posts'},
+      {n:'is_anonymous',t:'INT'},{n:'created_at',t:'TEXT'}
+    ]},
+  { id:'follows', label:'FOLLOWS', icon:'👥', color:'#3D9A8A', x:40, y:340,
+    cols:[
+      {n:'follower_id',t:'TEXT',fk:'users'},{n:'following_id',t:'TEXT',fk:'users'},
+      {n:'created_at',t:'TEXT'}
+    ]},
+  { id:'likes', label:'LIKES', icon:'❤️', color:'#3D9A8A', x:280, y:340,
+    cols:[
+      {n:'user_id',t:'TEXT',fk:'users'},{n:'post_id',t:'TEXT',fk:'posts'},
+      {n:'created_at',t:'TEXT'}
+    ]},
+  { id:'bookmarks', label:'BOOKMARKS', icon:'🔖', color:'#3D9A8A', x:470, y:340,
+    cols:[
+      {n:'user_id',t:'TEXT',fk:'users'},{n:'post_id',t:'TEXT',fk:'posts'},
+      {n:'created_at',t:'TEXT'}
+    ]},
+  { id:'notifications', label:'NOTIFICATIONS', icon:'🔔', color:'#C8738A', x:640, y:40,
+    cols:[
+      {n:'id',t:'TEXT',pk:true},{n:'user_id',t:'TEXT',fk:'users'},
+      {n:'actor_id',t:'TEXT',fk:'users'},{n:'type',t:'TEXT'},
+      {n:'ref_id',t:'TEXT'},{n:'preview',t:'TEXT'},
+      {n:'is_read',t:'INT'},{n:'created_at',t:'TEXT'}
+    ]},
+  { id:'dm_conversations', label:'DM_CONVERSATIONS', icon:'💬', color:'#BA7517', x:40, y:560,
+    cols:[
+      {n:'id',t:'TEXT',pk:true},{n:'user1_id',t:'TEXT',fk:'users'},
+      {n:'user2_id',t:'TEXT',fk:'users'},{n:'type',t:'TEXT'},
+      {n:'created_at',t:'TEXT'}
+    ]},
+  { id:'dm_messages', label:'DM_MESSAGES', icon:'✉️', color:'#BA7517', x:290, y:560,
+    cols:[
+      {n:'id',t:'TEXT',pk:true},{n:'conv_id',t:'TEXT',fk:'dm_conversations'},
+      {n:'sender_id',t:'TEXT',fk:'users'},{n:'content',t:'TEXT'},
+      {n:'reply_to_id',t:'TEXT'},{n:'reply_to_content',t:'TEXT'},
+      {n:'is_read',t:'INT'},{n:'created_at',t:'TEXT'}
+    ]},
+  { id:'stories', label:'STORIES', icon:'🌟', color:'#5A9E6F', x:640, y:340,
+    cols:[
+      {n:'id',t:'TEXT',pk:true},{n:'user_id',t:'TEXT',fk:'users'},
+      {n:'media_url',t:'TEXT'},{n:'media_type',t:'TEXT'},
+      {n:'caption',t:'TEXT'},{n:'expires_at',t:'TEXT'},
+      {n:'created_at',t:'TEXT'}
+    ]},
+  { id:'story_views', label:'STORY_VIEWS', icon:'👁️', color:'#5A9E6F', x:880, y:340,
+    cols:[
+      {n:'story_id',t:'TEXT',fk:'stories'},{n:'user_id',t:'TEXT',fk:'users'},
+      {n:'viewed_at',t:'TEXT'}
+    ]},
+  { id:'polls', label:'POLLS', icon:'📊', color:'#4A7FB5', x:580, y:560,
+    cols:[
+      {n:'id',t:'TEXT',pk:true},{n:'post_id',t:'TEXT',fk:'posts'},
+      {n:'question',t:'TEXT'},{n:'ends_at',t:'TEXT'},
+      {n:'created_at',t:'TEXT'}
+    ]},
+  { id:'poll_options', label:'POLL_OPTIONS', icon:'☑️', color:'#4A7FB5', x:820, y:560,
+    cols:[
+      {n:'id',t:'TEXT',pk:true},{n:'poll_id',t:'TEXT',fk:'polls'},
+      {n:'label',t:'TEXT'}
+    ]},
+  { id:'poll_votes', label:'POLL_VOTES', icon:'🗳️', color:'#4A7FB5', x:1040, y:560,
+    cols:[
+      {n:'user_id',t:'TEXT',fk:'users'},{n:'poll_id',t:'TEXT',fk:'polls'},
+      {n:'option_id',t:'TEXT',fk:'poll_options'},{n:'voted_at',t:'TEXT'}
+    ]},
+  { id:'pinned_posts', label:'PINNED_POSTS', icon:'📌', color:'#C8738A', x:880, y:40,
+    cols:[
+      {n:'user_id',t:'TEXT',fk:'users'},{n:'post_id',t:'TEXT',fk:'posts'},
+      {n:'created_at',t:'TEXT'}
+    ]},
+  { id:'konsultasi_sessions', label:'KONSULTASI_SESSIONS', icon:'🧠', color:'#8B6A8A', x:1100, y:220,
+    cols:[
+      {n:'id',t:'TEXT',pk:true},{n:'psikolog_id',t:'TEXT',fk:'users'},
+      {n:'user_id',t:'TEXT',fk:'users'},{n:'date',t:'TEXT'},
+      {n:'time',t:'TEXT'},{n:'topic',t:'TEXT'},
+      {n:'type',t:'TEXT'},{n:'status',t:'TEXT'},
+      {n:'created_at',t:'TEXT'}
+    ]},
+];
+
+const RELATIONS = [
+  {from:'users',to:'posts',label:'menulis'},
+  {from:'users',to:'follows',label:'follower'},
+  {from:'users',to:'likes',label:'menyukai'},
+  {from:'users',to:'bookmarks',label:'menyimpan'},
+  {from:'users',to:'notifications',label:'menerima'},
+  {from:'users',to:'dm_conversations',label:'memulai'},
+  {from:'users',to:'dm_messages',label:'mengirim'},
+  {from:'users',to:'stories',label:'membuat'},
+  {from:'users',to:'konsultasi_sessions',label:'booking'},
+  {from:'posts',to:'likes',label:'mendapat'},
+  {from:'posts',to:'bookmarks',label:'disimpan'},
+  {from:'posts',to:'polls',label:'memiliki'},
+  {from:'posts',to:'pinned_posts',label:'dipin'},
+  {from:'polls',to:'poll_options',label:'punya'},
+  {from:'polls',to:'poll_votes',label:'mendapat'},
+  {from:'dm_conversations',to:'dm_messages',label:'berisi'},
+  {from:'stories',to:'story_views',label:'dilihat'},
+];
+
+const canvas = document.getElementById('canvas');
+const svg    = document.getElementById('svg-layer');
+const nodes  = {};
+
+// Render tables
+TABLES.forEach(t => {
+  const el = document.createElement('div');
+  el.className = 'tbl';
+  el.id = 'tbl-' + t.id;
+  el.style.left = t.x + 'px';
+  el.style.top  = t.y + 'px';
+
+  const colsHtml = t.cols.map(c => `
+    <div class="tbl-row">
+      ${c.pk ? '<span class="pk">PK</span>' : c.fk ? '<span class="fk">FK</span>' : '<span style="width:24px;display:inline-block"></span>'}
+      <span>${c.n}</span>
+      <span class="col-type">${c.t}</span>
+    </div>`).join('');
+
+  el.innerHTML = `
+    <div class="tbl-head" style="background:${t.color}">
+      <span class="tbl-head-icon">${t.icon}</span>
+      <span>${t.label}</span>
+    </div>
+    <div class="tbl-body">${colsHtml}</div>`;
+
+  canvas.appendChild(el);
+  nodes[t.id] = el;
+  makeDraggable(el);
+});
+
+// Draw relation lines
+function getCenter(el) {
+  const x = parseInt(el.style.left) + el.offsetWidth / 2;
+  const y = parseInt(el.style.top)  + el.offsetHeight / 2;
+  return { x, y };
+}
+
+function drawLines() {
+  svg.innerHTML = '';
+  RELATIONS.forEach(r => {
+    const f = nodes[r.from], t = nodes[r.to];
+    if (!f || !t) return;
+    const fc = getCenter(f), tc = getCenter(t);
+    const mx = (fc.x + tc.x) / 2;
+
+    const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+    path.setAttribute('d', `M${fc.x},${fc.y} C${mx},${fc.y} ${mx},${tc.y} ${tc.x},${tc.y}`);
+
+    const colors = { users:'#C8738A', posts:'#7B5EA7', polls:'#4A7FB5', stories:'#5A9E6F', dm_conversations:'#BA7517' };
+    const color = colors[r.from] || '#8A7070';
+    path.setAttribute('stroke', color);
+    path.classList.add('rel-line');
+
+    // Label
+    const text = document.createElementNS('http://www.w3.org/2000/svg','text');
+    text.setAttribute('x', mx);
+    text.setAttribute('y', (fc.y + tc.y) / 2 - 4);
+    text.setAttribute('text-anchor','middle');
+    text.setAttribute('fill', color);
+    text.setAttribute('font-size','9');
+    text.setAttribute('font-family','DM Sans, sans-serif');
+    text.setAttribute('font-weight','600');
+    text.setAttribute('opacity','0.8');
+    text.textContent = r.label;
+
+    svg.appendChild(path);
+    svg.appendChild(text);
+  });
+}
+
+// Draggable
+function makeDraggable(el) {
+  let isDragging = false, startX, startY, origX, origY;
+  el.addEventListener('mousedown', e => {
+    if (e.target.tagName === 'BUTTON') return;
+    isDragging = true;
+    startX = e.clientX; startY = e.clientY;
+    origX = parseInt(el.style.left); origY = parseInt(el.style.top);
+    el.style.zIndex = 100;
+    e.preventDefault();
+  });
+  document.addEventListener('mousemove', e => {
+    if (!isDragging) return;
+    el.style.left = (origX + e.clientX - startX) + 'px';
+    el.style.top  = (origY + e.clientY - startY) + 'px';
+    drawLines();
+  });
+  document.addEventListener('mouseup', () => {
+    isDragging = false;
+    el.style.zIndex = '';
+  });
+}
+
+function resetLayout() {
+  TABLES.forEach(t => {
+    const el = document.getElementById('tbl-' + t.id);
+    el.style.left = t.x + 'px';
+    el.style.top  = t.y + 'px';
+  });
+  setTimeout(drawLines, 50);
+}
+
+function printDiagram() { window.print(); }
+
+// Initial draw setelah semua elemen ter-render
+setTimeout(drawLines, 100);
+window.addEventListener('resize', drawLines);
+</script>
+
+<style>
+@media print {
+  .controls, .legend { display:none; }
+  #canvas-wrap { border:none; overflow:visible; }
+  #canvas { transform:scale(.7); transform-origin:top left; }
+  body { padding:0; }
+}
+</style>
+</body>
+</html>
