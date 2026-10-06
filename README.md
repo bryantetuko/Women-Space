@@ -97,7 +97,7 @@ confidence = res.json()["confidence"]
 ### Expected model output format:
 ```python
 {
-  "gender"    : "female",   # atau "male"
+  "gender"    : "female",   # or "male"
   "confidence": 0.97        # nilai 0.0 hingga 1.0
 }
 ```
@@ -108,22 +108,22 @@ confidence = res.json()["confidence"]
 
 | Method | Endpoint                     | Keterangan                          | Auth? |
 |--------|------------------------------|-------------------------------------|-------|
-| POST   | /api/auth/verify-face        | Upload foto → verifikasi ML         | ❌    |
-| POST   | /api/auth/register           | Daftar akun baru                    | ❌    |
-| POST   | /api/auth/login              | Login → dapat JWT token             | ❌    |
-| GET    | /api/auth/me                 | Info user yang login                | ✅    |
-| GET    | /api/posts/fyp               | Feed For You (semua postingan)      | ✅    |
-| GET    | /api/posts/following         | Feed dari akun yang di-follow       | ✅    |
-| POST   | /api/posts                   | Buat postingan baru (multipart)     | ✅    |
+| POST   | /api/auth/verify-face        | Upload photo → ML verification      | ❌    |
+| POST   | /api/auth/register           | Register a new account              | ❌    |
+| POST   | /api/auth/login              | Login → receive JWT token           | ❌    |
+| GET    | /api/auth/me                 | Logged-in user info                 | ✅    |
+| GET    | /api/posts/fyp               | For You feed (all posts)            | ✅    |
+| GET    | /api/posts/following         | Feed from followed accounts         | ✅    |
+| POST   | /api/posts                   | Create a new post (multipart)       | ✅    |
 | POST   | /api/posts/:id/like          | Toggle like/unlike                  | ✅    |
-| POST   | /api/posts/:id/reply         | Balas postingan                     | ✅    |
+| POST   | /api/posts/:id/reply         | Reply to a post                     | ✅    |
 | POST   | /api/posts/:id/repost        | Repost                              | ✅    |
-| GET    | /api/posts/:id/replies       | Ambil semua replies                 | ✅    |
-| GET    | /api/search?q=               | Cari postingan & user               | ✅    |
-| GET    | /api/search/trending         | Postingan trending (7 hari)         | ✅    |
-| GET    | /api/users/:id               | Profil user + postingan             | ✅    |
-| PUT    | /api/users/me/update         | Edit profil (perlu old_password)    | ✅    |
-| DELETE | /api/users/me/delete         | Hapus akun permanen                 | ✅    |
+| GET    | /api/posts/:id/replies       | Get all replies                     | ✅    |
+| GET    | /api/search?q=               | Search posts & users                | ✅    |
+| GET    | /api/search/trending         | Trending posts (7 days).            | ✅    |
+| GET    | /api/users/:id               | User profile + posts.               | ✅    |
+| PUT    | /api/users/me/update         | Edit profile (requires old_password)| ✅    |
+| DELETE | /api/users/me/delete         | Permanently delete account          | ✅    |
 | POST   | /api/users/:id/follow        | Toggle follow/unfollow              | ✅    |
 
 ---
