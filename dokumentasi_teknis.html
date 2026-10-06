@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Dokumentasi Teknis — Womenspace</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  :root {
+    --rose: #C8738A; --rose-dark: #A85970; --rose-pale: #F5E0E5;
+    --purple: #7B5EA7; --teal: #3D9A8A; --amber: #BA7517;
+    --text: #2D2020; --muted: #7A6868; --border: #E8D8DC;
+    --bg: #FDF7F2; --white: #FFFFFF;
+    --code-bg: #F0E8E8;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { font-size: 15px; }
+  body { font-family: 'DM Sans', system-ui, sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; }
+
+  /* ── COVER ── */
+  .cover {
+    background: linear-gradient(135deg, #C8738A 0%, #E8A0B0 50%, #F5C6D3 100%);
+    color: white; text-align: center; padding: 80px 40px;
+    min-height: 320px; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 16px;
+  }
+  .cover-mark { font-size: 5rem; }
+  .cover h1 { font-family: 'Playfair Display', serif; font-size: 3rem; font-weight: 900; letter-spacing: -.02em; }
+  .cover .sub { font-size: 1.1rem; opacity: .9; }
+  .cover .meta { font-size: .88rem; opacity: .75; margin-top: 8px; }
+  .cover .badges { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 8px; }
+  .cover .badge { background: rgba(255,255,255,.25); padding: 4px 14px; border-radius: 99px; font-size: .82rem; font-weight: 600; }
+
+  /* ── LAYOUT ── */
+  .container { max-width: 860px; margin: 0 auto; padding: 48px 32px; }
+
+  /* ── TOC ── */
+  .toc { background: var(--white); border: 1px solid var(--border); border-radius: 12px; padding: 28px 32px; margin-bottom: 48px; }
+  .toc h2 { font-family: 'Playfair Display', serif; font-size: 1.3rem; margin-bottom: 16px; color: var(--rose); }
+  .toc ol { padding-left: 20px; }
+  .toc li { margin-bottom: 6px; }
+  .toc a { color: var(--rose); text-decoration: none; font-weight: 500; }
+  .toc a:hover { text-decoration: underline; }
+  .toc li li { margin-top: 4px; font-size: .9rem; }
+
+  /* ── SECTIONS ── */
+  .section { margin-bottom: 56px; }
+  .section-header {
+    display: flex; align-items: center; gap: 12px;
+    padding-bottom: 12px; border-bottom: 2px solid var(--rose-pale);
+    margin-bottom: 24px;
+  }
+  .section-icon { font-size: 1.8rem; }
+  h2.section-title { font-family: 'Playfair Display', serif; font-size: 1.6rem; font-weight: 700; color: var(--text); }
+  h3 { font-size: 1.1rem; font-weight: 700; color: var(--text); margin: 24px 0 10px; border-left: 3px solid var(--rose); padding-left: 10px; }
+  h4 { font-size: .95rem; font-weight: 700; color: var(--muted); margin: 16px 0 8px; text-transform: uppercase; letter-spacing: .06em; }
+  p { margin-bottom: 12px; color: var(--text); }
+  ul, ol { padding-left: 20px; margin-bottom: 14px; }
+  li { margin-bottom: 6px; }
+
+  /* ── CODE ── */
+  code { font-family: 'JetBrains Mono', monospace; font-size: .83rem; background: var(--code-bg); padding: 2px 6px; border-radius: 4px; color: var(--rose-dark); }
+  pre { background: #2D1A22; color: #F4C0D1; padding: 20px; border-radius: 10px; overflow-x: auto; margin: 14px 0; font-family: 'JetBrains Mono', monospace; font-size: .82rem; line-height: 1.65; }
+  pre .comment { color: #8A6A73; }
+  pre .keyword { color: #E8A0B0; }
+  pre .string  { color: #A8D8B0; }
+  pre .func    { color: #F0D080; }
+
+  /* ── TABLE ── */
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: .88rem; }
+  th { background: var(--rose-pale); color: var(--rose-dark); font-weight: 700; padding: 10px 14px; text-align: left; border: 1px solid var(--border); }
+  td { padding: 9px 14px; border: 1px solid var(--border); vertical-align: top; }
+  tr:nth-child(even) td { background: #FDF0F3; }
+
+  /* ── BADGES ── */
+  .tag { display: inline-flex; align-items: center; padding: 2px 10px; border-radius: 99px; font-size: .75rem; font-weight: 700; margin: 2px; }
+  .tag-get    { background: #d4e8ff; color: #1a5fa8; }
+  .tag-post   { background: #d4f5e9; color: #1a7a4a; }
+  .tag-put    { background: #fef3e2; color: #BA7517; }
+  .tag-delete { background: #fde8e8; color: #c0392b; }
+  .tag-auth   { background: var(--rose-pale); color: var(--rose-dark); }
+  .tag-ml     { background: #e8e0f5; color: var(--purple); }
+
+  /* ── CARDS ── */
+  .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin: 16px 0; }
+  .card { background: var(--white); border: 1px solid var(--border); border-radius: 10px; padding: 18px; }
+  .card-icon { font-size: 1.8rem; margin-bottom: 8px; }
+  .card h4 { border: none; padding: 0; margin: 0 0 6px; text-transform: none; letter-spacing: 0; font-size: .95rem; color: var(--text); }
+  .card p { font-size: .85rem; color: var(--muted); margin: 0; }
+
+  /* ── HIGHLIGHT BOX ── */
+  .info-box { background: var(--rose-pale); border-left: 4px solid var(--rose); border-radius: 0 8px 8px 0; padding: 14px 18px; margin: 16px 0; font-size: .9rem; }
+  .info-box strong { color: var(--rose-dark); }
+  .warn-box { background: #fef3e2; border-left: 4px solid var(--amber); border-radius: 0 8px 8px 0; padding: 14px 18px; margin: 16px 0; font-size: .9rem; }
+
+  /* ── DIAGRAM placeholder ── */
+  .diagram-box { background: var(--white); border: 1.5px dashed var(--border); border-radius: 12px; padding: 32px; text-align: center; color: var(--muted); margin: 20px 0; font-size: .9rem; }
+  .diagram-box .d-icon { font-size: 2.5rem; margin-bottom: 10px; }
+
+  /* ── ML PIPELINE ── */
+  .pipeline { display: flex; align-items: center; gap: 0; margin: 20px 0; flex-wrap: wrap; }
+  .pipeline-step { background: var(--white); border: 1px solid var(--border); border-radius: 8px; padding: 10px 16px; text-align: center; font-size: .82rem; font-weight: 600; min-width: 110px; }
+  .pipeline-step .step-icon { font-size: 1.3rem; display: block; margin-bottom: 4px; }
+  .pipeline-step .step-label { color: var(--muted); font-size: .72rem; font-weight: 400; }
+  .pipeline-arrow { color: var(--rose-dark); font-size: 1.2rem; padding: 0 4px; flex-shrink: 0; }
+
+  /* ── FOOTER ── */
+  .footer { text-align: center; padding: 32px; color: var(--muted); font-size: .85rem; border-top: 1px solid var(--border); margin-top: 48px; }
+
+  /* Print */
+  @media print {
+    body { background: white; }
+    .cover { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+    .container { padding: 24px; }
+    pre { border: 1px solid #ddd; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── COVER ── -->
+<div class="cover">
+  <div class="cover-mark">✿</div>
+  <h1>Womenspace</h1>
+  <p class="sub">Dokumentasi Teknis — Platform Forum Eksklusif Perempuan<br/>dengan Verifikasi Gender Berbasis Machine Learning</p>
+  <p class="meta">Software Engineering · Machine Learning · HCI</p>
+  <div class="badges">
+    <span class="badge">Python · Flask</span>
+    <span class="badge">XGBoost · OpenCV</span>
+    <span class="badge">HTML · CSS · JS</span>
+    <span class="badge">SQLite</span>
+    <span class="badge">Render.com</span>
+  </div>
+</div>
+
+<div class="container">
+
+<!-- ── TOC ── -->
+<div class="toc">
+  <h2>📋 Daftar Isi</h2>
+  <ol>
+    <li><a href="#overview">Gambaran Umum Sistem</a></li>
+    <li><a href="#arsitektur">Arsitektur Sistem</a>
+      <ol>
+        <li><a href="#layer-frontend">Layer Frontend</a></li>
+        <li><a href="#layer-backend">Layer Backend</a></li>
+        <li><a href="#layer-db">Layer Database</a></li>
+        <li><a href="#layer-ml">Layer Machine Learning</a></li>
+      </ol>
+    </li>
+    <li><a href="#ml-pipeline">Pipeline Machine Learning</a>
+      <ol>
+        <li><a href="#training">Proses Training</a></li>
+        <li><a href="#inference">Proses Inferensi</a></li>
+        <li><a href="#performa">Performa Model</a></li>
+      </ol>
+    </li>
+    <li><a href="#erd">Entity Relationship Diagram</a></li>
+    <li><a href="#flowchart">Flowchart Sistem</a></li>
+    <li><a href="#api">Dokumentasi API</a></li>
+    <li><a href="#fitur">Fitur Aplikasi</a></li>
+    <li><a href="#keamanan">Keamanan & Privasi</a></li>
+    <li><a href="#deployment">Deployment</a></li>
+    <li><a href="#struktur-file">Struktur File</a></li>
+  </ol>
+</div>
+
+<!-- ── 1. OVERVIEW ── -->
+<div class="section" id="overview">
+  <div class="section-header">
+    <span class="section-icon">🌸</span>
+    <h2 class="section-title">1. Gambaran Umum Sistem</h2>
+  </div>
+
+  <p><strong>Womenspace</strong> adalah platform forum digital eksklusif yang dirancang khusus untuk perempuan. Platform ini mengintegrasikan teknologi <em>Machine Learning</em> untuk memverifikasi gender pengguna pada saat pendaftaran, memastikan bahwa hanya perempuan yang dapat mengakses komunitas ini.</p>
+
+  <div class="card-grid">
+    <div class="card">
+      <div class="card-icon">🎯</div>
+      <h4>Tujuan Utama</h4>
+      <p>Menciptakan ruang aman digital bagi perempuan untuk berbagi, berdiskusi, dan terhubung tanpa khawatir akan gangguan dari luar komunitas.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🤖</div>
+      <h4>Inovasi ML</h4>
+      <p>Verifikasi gender otomatis menggunakan computer vision (OpenCV), reduksi dimensi (PCA), dan klasifikasi (XGBoost) dengan akurasi tinggi.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🔒</div>
+      <h4>Keamanan</h4>
+      <p>JWT authentication, bcrypt password hashing, anonymous posting, dan sistem notifikasi real-time untuk menjaga privasi pengguna.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">📱</div>
+      <h4>Aksesibilitas</h4>
+      <p>Desain responsif mobile-first dengan bottom navbar adaptif — nyaman diakses dari HP maupun desktop.</p>
+    </div>
+  </div>
+
+  <h3>Stack Teknologi</h3>
+  <table>
+    <tr><th>Kategori</th><th>Teknologi</th><th>Versi / Keterangan</th></tr>
+    <tr><td>Backend</td><td>Python, Flask</td><td>Flask 3.x, Python 3.10+</td></tr>
+    <tr><td>Database</td><td>SQLite</td><td>Via sqlite3 bawaan Python</td></tr>
+    <tr><td>Autentikasi</td><td>JWT</td><td>flask-jwt-extended</td></tr>
+    <tr><td>ML — Klasifikasi</td><td>XGBoost</td><td>XGBClassifier, 600 estimator</td></tr>
+    <tr><td>ML — Reduksi Dimensi</td><td>scikit-learn PCA</td><td>1000 komponen</td></tr>
+    <tr><td>ML — Computer Vision</td><td>OpenCV</td><td>Haar Cascade face detection</td></tr>
+    <tr><td>Dataset</td><td>UTKFace</td><td>±20.000 foto wajah berlabel</td></tr>
+    <tr><td>Frontend</td><td>Vanilla HTML/CSS/JS</td><td>Tanpa framework, ES6+</td></tr>
+    <tr><td>Deployment</td><td>Render.com</td><td>https://womenspace.onrender.com</td></tr>
+  </table>
+</div>
+
+<!-- ── 2. ARSITEKTUR ── -->
+<div class="section" id="arsitektur">
+  <div class="section-header">
+    <span class="section-icon">🏗️</span>
+    <h2 class="section-title">2. Arsitektur Sistem</h2>
+  </div>
+
+  <p>Womenspace menggunakan arsitektur <strong>3-tier</strong> yang memisahkan presentation layer, business logic layer, dan data layer secara jelas.</p>
+
+  <div class="diagram-box">
+    <div class="d-icon">🖥️</div>
+    <strong>Layer 1: Client (Browser/HP)</strong><br/>
+    HTML Pages → style.css → api.js → localStorage<br/><br/>
+    ↕ HTTP REST API (JWT Bearer Token)<br/><br/>
+    <strong>Layer 2: Backend (Flask · Python)</strong><br/>
+    Auth · Posts · DM · Stories · Polls · Konsultasi · ML Engine<br/><br/>
+    ↕ SQL Queries &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ↕ joblib.load()<br/><br/>
+    <strong>Layer 3: Storage & ML</strong><br/>
+    SQLite DB (womenspace.db) &nbsp;|&nbsp; Model .pkl &nbsp;|&nbsp; uploads/
+  </div>
+
+  <h3 id="layer-frontend">2.1 Layer Frontend</h3>
+  <p>Frontend dibangun dengan <strong>Vanilla JavaScript</strong> (tanpa framework) untuk membuktikan pemahaman mendalam terhadap Web API standar. Struktur modular dengan <code>api.js</code> sebagai shared library.</p>
+
+  <table>
+    <tr><th>File</th><th>Fungsi</th></tr>
+    <tr><td><code>index.html</code></td><td>Router — redirect ke login atau home berdasarkan token</td></tr>
+    <tr><td><code>login.html</code></td><td>Form login dengan toggle password visibility</td></tr>
+    <tr><td><code>register.html</code></td><td>Registrasi 2 langkah: data akun → verifikasi wajah ML</td></tr>
+    <tr><td><code>home.html</code></td><td>Feed FYP/Following, story bar, compose box, thread modal</td></tr>
+    <tr><td><code>search.html</code></td><td>Explore, trending, pencarian postingan & akun</td></tr>
+    <tr><td><code>profile.html</code></td><td>Profil user, pin post, edit profil, hapus akun</td></tr>
+    <tr><td><code>notifications.html</code></td><td>Notifikasi dengan filter tab Like/Reply/Follow</td></tr>
+    <tr><td><code>dm.html</code></td><td>Direct message dengan reply-to quote & polling</td></tr>
+    <tr><td><code>konsultasi.html</code></td><td>Daftar psikolog, booking sesi, riwayat konsultasi</td></tr>
+    <tr><td><code>bookmarks.html</code></td><td>Postingan yang disimpan user</td></tr>
+    <tr><td><code>anonim.html</code></td><td>Channel khusus posting anonim</td></tr>
+    <tr><td><code>js/api.js</code></td><td>Shared library: fetch wrapper, renderPostCard, renderNavbar, dll.</td></tr>
+    <tr><td><code>style.css</code></td><td>Design system — 600+ baris, mobile responsive</td></tr>
+  </table>
+
+  <h3 id="layer-backend">2.2 Layer Backend</h3>
+  <p>Backend menggunakan <strong>Flask</strong> dengan desain RESTful API. Semua endpoint dilindungi JWT kecuali login, register, dan verify-face.</p>
+
+  <pre><span class="comment"># Struktur routing app.py</span>
+<span class="keyword">POST</span>   /api/auth/verify-face      <span class="comment"># ML gender verification</span>
+<span class="keyword">POST</span>   /api/auth/register
+<span class="keyword">POST</span>   /api/auth/login
+<span class="keyword">GET</span>    /api/auth/me
+
+<span class="keyword">GET</span>    /api/posts/fyp
+<span class="keyword">GET</span>    /api/posts/following
+<span class="keyword">POST</span>   /api/posts              <span class="comment"># create post</span>
+<span class="keyword">POST</span>   /api/posts/with-poll    <span class="comment"># create post + poll</span>
+<span class="keyword">POST</span>   /api/posts/:id/like
+<span class="keyword">POST</span>   /api/posts/:id/reply
+<span class="keyword">POST</span>   /api/posts/:id/bookmark
+<span class="keyword">POST</span>   /api/posts/:id/pin
+
+<span class="keyword">GET</span>    /api/dm/conversations
+<span class="keyword">POST</span>   /api/dm/conversations
+<span class="keyword">GET</span>    /api/dm/conversations/:id/messages
+<span class="keyword">POST</span>   /api/dm/conversations/:id/messages
+
+<span class="keyword">GET</span>    /api/stories
+<span class="keyword">POST</span>   /api/stories
+<span class="keyword">POST</span>   /api/stories/:id/view
+
+<span class="keyword">GET</span>    /api/notifications
+<span class="keyword">POST</span>   /api/notifications/read-all
+<span class="keyword">GET</span>    /api/notifications/unread-count
+
+<span class="keyword">GET</span>    /api/konsultasi/psikolog
+<span class="keyword">POST</span>   /api/konsultasi/booking
+<span class="keyword">GET</span>    /api/konsultasi/sessions</pre>
+
+  <h3 id="layer-db">2.3 Layer Database</h3>
+  <p>Menggunakan <strong>SQLite</strong> dengan 15 tabel yang terhubung melalui foreign key. Semua timestamp menggunakan WIB (UTC+7).</p>
+
+  <h3 id="layer-ml">2.4 Layer Machine Learning</h3>
+  <p>Model ML dimuat sekali saat server startup menggunakan <code>joblib.load()</code> dan disimpan di memori untuk inference cepat tanpa reload berulang.</p>
+</div>
+
+<!-- ── 3. ML PIPELINE ── -->
+<div class="section" id="ml-pipeline">
+  <div class="section-header">
+    <span class="section-icon">🤖</span>
+    <h2 class="section-title">3. Pipeline Machine Learning</h2>
+  </div>
+
+  <h3 id="training">3.1 Proses Training (Google Colab)</h3>
+  <table>
+    <tr><th>Tahap</th><th>Detail</th></tr>
+    <tr><td>Dataset</td><td>UTKFace — ±20.000 foto wajah dengan label usia, gender, etnis</td></tr>
+    <tr><td>Preprocessing</td><td>OpenCV grayscale → Haar Cascade crop wajah → resize 128×128 → flatten</td></tr>
+    <tr><td>Augmentasi</td><td>Horizontal flip untuk memperbanyak data 2×</td></tr>
+    <tr><td>Normalisasi</td><td>Pixel values / 255.0 → range [0.0 – 1.0]</td></tr>
+    <tr><td>Reduksi Dimensi</td><td>PCA 1000 komponen dari 16.384 fitur</td></tr>
+    <tr><td>Model</td><td>XGBClassifier: 600 estimator, lr=0.03, max_depth=8, early_stopping=20</td></tr>
+    <tr><td>Split Data</td><td>80% train / 20% test, stratified</td></tr>
+    <tr><td>Output</td><td><code>gender_model.pkl</code> + <code>pca_model.pkl</code></td></tr>
+  </table>
+
+  <h3 id="inference">3.2 Proses Inferensi (saat registrasi)</h3>
+  <p>Pipeline inferensi <strong>harus identik</strong> dengan pipeline training untuk hasil yang akurat:</p>
+
+  <div class="pipeline">
+    <div class="pipeline-step"><span class="step-icon">📸</span>Upload foto<span class="step-label">JPG/PNG/WEBP</span></div>
+    <span class="pipeline-arrow">→</span>
+    <div class="pipeline-step"><span class="step-icon">🔍</span>OpenCV<span class="step-label">Grayscale + equalizeHist</span></div>
+    <span class="pipeline-arrow">→</span>
+    <div class="pipeline-step"><span class="step-icon">✂️</span>Haar Cascade<span class="step-label">Crop wajah terbesar</span></div>
+    <span class="pipeline-arrow">→</span>
+    <div class="pipeline-step"><span class="step-icon">📐</span>Resize<span class="step-label">128 × 128 px</span></div>
+    <span class="pipeline-arrow">→</span>
+    <div class="pipeline-step"><span class="step-icon">🔢</span>Flatten + /255<span class="step-label">16.384 fitur</span></div>
+    <span class="pipeline-arrow">→</span>
+    <div class="pipeline-step"><span class="step-icon">📊</span>PCA<span class="step-label">→ 1000 komponen</span></div>
+    <span class="pipeline-arrow">→</span>
+    <div class="pipeline-step"><span class="step-icon">🤖</span>XGBoost<span class="step-label">Predict + proba</span></div>
+    <span class="pipeline-arrow">→</span>
+    <div class="pipeline-step"><span class="step-icon">✅</span>Hasil<span class="step-label">Male / Female + confidence</span></div>
+  </div>
+
+  <div class="info-box">
+    <strong>Penting — equalizeHist:</strong> Histogram equalization diterapkan sebelum deteksi wajah untuk normalisasi pencahayaan. Ini kritis agar model bekerja konsisten pada berbagai kondisi foto (gelap, terang, indoor, outdoor).
+  </div>
+
+  <h3 id="performa">3.3 Performa Model</h3>
+  <table>
+    <tr><th>Metrik</th><th>Nilai</th></tr>
+    <tr><td>Akurasi (test set)</td><td>Tinggi (sesuai hasil training di Colab)</td></tr>
+    <tr><td>Input features (setelah PCA)</td><td>1.000 komponen</td></tr>
+    <tr><td>Input size (sebelum PCA)</td><td>16.384 (128×128 grayscale)</td></tr>
+    <tr><td>Jumlah estimator XGBoost</td><td>600 pohon</td></tr>
+    <tr><td>Label</td><td>0 = Laki-laki, 1 = Perempuan</td></tr>
+    <tr><td>Output confidence</td><td>predict_proba() → [0.0 – 1.0]</td></tr>
+  </table>
+</div>
+
+<!-- ── 4. ERD ── -->
+<div class="section" id="erd">
+  <div class="section-header">
+    <span class="section-icon">🗄️</span>
+    <h2 class="section-title">4. Entity Relationship Diagram</h2>
+  </div>
+
+  <p>Database Womenspace terdiri dari <strong>15 tabel</strong> yang terhubung dengan relasi one-to-many dan many-to-many.</p>
+
+  <h3>Tabel Utama</h3>
+  <table>
+    <tr><th>Tabel</th><th>Primary Key</th><th>Relasi Utama</th><th>Keterangan</th></tr>
+    <tr><td><code>users</code></td><td>id (UUID)</td><td>→ posts, follows, DM</td><td>Data pengguna terverifikasi</td></tr>
+    <tr><td><code>posts</code></td><td>id (UUID)</td><td>→ likes, bookmarks, polls</td><td>Postingan, reply, repost</td></tr>
+    <tr><td><code>follows</code></td><td>(follower_id, following_id)</td><td>users ↔ users</td><td>Relasi follow antar user</td></tr>
+    <tr><td><code>likes</code></td><td>(user_id, post_id)</td><td>users × posts</td><td>Toggle like/unlike</td></tr>
+    <tr><td><code>bookmarks</code></td><td>(user_id, post_id)</td><td>users × posts</td><td>Simpan postingan</td></tr>
+    <tr><td><code>notifications</code></td><td>id (UUID)</td><td>← users (actor)</td><td>Like, reply, follow, repost</td></tr>
+    <tr><td><code>dm_conversations</code></td><td>id (UUID)</td><td>users ↔ users</td><td>Percakapan 1-on-1</td></tr>
+    <tr><td><code>dm_messages</code></td><td>id (UUID)</td><td>→ dm_conversations</td><td>Pesan + reply quote</td></tr>
+    <tr><td><code>stories</code></td><td>id (UUID)</td><td>→ story_views</td><td>Kadaluarsa 24 jam</td></tr>
+    <tr><td><code>polls</code></td><td>id (UUID)</td><td>→ poll_options, votes</td><td>Poll pada postingan</td></tr>
+    <tr><td><code>poll_options</code></td><td>id (UUID)</td><td>→ polls</td><td>Pilihan jawaban poll</td></tr>
+    <tr><td><code>poll_votes</code></td><td>(user_id, poll_id)</td><td>users × polls</td><td>Satu vote per user per poll</td></tr>
+    <tr><td><code>pinned_posts</code></td><td>(user_id, post_id)</td><td>users × posts</td><td>Maks 1 pin per profil</td></tr>
+    <tr><td><code>psikolog_profiles</code></td><td>id (UUID)</td><td>→ users</td><td>Profil psikolog</td></tr>
+    <tr><td><code>konsultasi_sessions</code></td><td>id (UUID)</td><td>users × psikolog</td><td>Booking sesi konsultasi</td></tr>
+  </table>
+
+  <h3>Relasi Kunci</h3>
+  <ul>
+    <li><strong>posts.parent_id → posts.id</strong> — self-referential untuk thread/reply</li>
+    <li><strong>posts.repost_of → posts.id</strong> — self-referential untuk repost</li>
+    <li><strong>posts.is_anonymous</strong> — jika 1, author disembunyikan dari publik</li>
+    <li><strong>dm_messages.reply_to_id</strong> — mendukung fitur reply-to dalam chat</li>
+    <li><strong>stories.expires_at</strong> — story otomatis hilang setelah 24 jam</li>
+  </ul>
+</div>
+
+<!-- ── 5. FLOWCHART ── -->
+<div class="section" id="flowchart">
+  <div class="section-header">
+    <span class="section-icon">🔄</span>
+    <h2 class="section-title">5. Flowchart Sistem</h2>
+  </div>
+
+  <h3>5.1 Alur Registrasi + Verifikasi ML</h3>
+  <ol>
+    <li>User buka halaman <code>register.html</code></li>
+    <li><strong>Step 1</strong> — Isi username, email, password (validasi client-side)</li>
+    <li><strong>Step 2</strong> — Upload foto wajah (JPG/PNG/WEBP)</li>
+    <li>Frontend kirim foto ke <code>POST /api/auth/verify-face</code></li>
+    <li>Backend jalankan ML pipeline → deteksi wajah → klasifikasi gender</li>
+    <li>Jika <strong>laki-laki</strong> → kembalikan error 403, tampilkan tombol "Ganti Foto"</li>
+    <li>Jika <strong>perempuan</strong> → lanjut <code>POST /api/auth/register</code></li>
+    <li>Backend simpan user ke DB, generate JWT token</li>
+    <li>Frontend tampilkan overlay sukses dengan countdown 5 detik</li>
+    <li>Redirect ke <code>home.html</code></li>
+  </ol>
+
+  <h3>5.2 Alur Login</h3>
+  <ol>
+    <li>User masukkan username + password</li>
+    <li><code>POST /api/auth/login</code> → backend verify bcrypt hash</li>
+    <li>Jika valid → return JWT token → simpan ke <code>localStorage</code></li>
+    <li>Semua request berikutnya sertakan <code>Authorization: Bearer {token}</code></li>
+    <li>Token expires setelah 12 jam → user diminta login ulang</li>
+  </ol>
+
+  <h3>5.3 Alur Posting</h3>
+  <ol>
+    <li>User tulis konten di compose box (opsional: media, poll, mode anonim)</li>
+    <li>Jika ada media → upload sebagai <code>multipart/form-data</code></li>
+    <li>Backend simpan post ke DB, file ke <code>uploads/media/</code></li>
+    <li>Post tampil di FYP semua user dan Following tab followers</li>
+    <li>Interaksi (like/reply/repost/bookmark) → update DB + trigger notifikasi</li>
+  </ol>
+
+  <h3>5.4 Alur Verifikasi Gender (Detail ML)</h3>
+  <pre><span class="comment"># predict_gender() di app.py</span>
+img_bgr   = cv2.<span class="func">imread</span>(image_path)
+gray      = cv2.<span class="func">cvtColor</span>(img_bgr, cv2.COLOR_BGR2GRAY)
+balanced  = cv2.<span class="func">equalizeHist</span>(gray)          <span class="comment"># normalisasi kontras</span>
+faces     = cascade.<span class="func">detectMultiScale</span>(balanced)  <span class="comment"># deteksi wajah</span>
+crop      = balanced[y:y+h, x:x+w]
+resized   = cv2.<span class="func">resize</span>(crop, (128, 128))
+features  = resized.<span class="func">flatten</span>().<span class="func">reshape</span>(1,-1) / 255.0
+pca_feats = pca_model.<span class="func">transform</span>(features)     <span class="comment"># 16384 → 1000</span>
+pred      = gender_model.<span class="func">predict</span>(pca_feats)[0]  <span class="comment"># 0=male, 1=female</span>
+proba     = gender_model.<span class="func">predict_proba</span>(pca_feats)[0]</pre>
+</div>
+
+<!-- ── 6. API DOCS ── -->
+<div class="section" id="api">
+  <div class="section-header">
+    <span class="section-icon">🔌</span>
+    <h2 class="section-title">6. Dokumentasi API</h2>
+  </div>
+
+  <p>Base URL: <code>https://womenspace.onrender.com/api</code></p>
+  <p>Autentikasi: <code>Authorization: Bearer &lt;JWT_TOKEN&gt;</code> (kecuali endpoint publik)</p>
+
+  <h3>Auth Endpoints</h3>
+  <table>
+    <tr><th>Method</th><th>Endpoint</th><th>Auth</th><th>Keterangan</th></tr>
+    <tr><td><span class="tag tag-post">POST</span></td><td><code>/auth/verify-face</code></td><td>❌</td><td>Upload foto → ML gender check</td></tr>
+    <tr><td><span class="tag tag-post">POST</span></td><td><code>/auth/register</code></td><td>❌</td><td>Daftar akun baru</td></tr>
+    <tr><td><span class="tag tag-post">POST</span></td><td><code>/auth/login</code></td><td>❌</td><td>Login → return JWT</td></tr>
+    <tr><td><span class="tag tag-get">GET</span></td><td><code>/auth/me</code></td><td>✅</td><td>Info user yang login</td></tr>
+  </table>
+
+  <h3>Post Endpoints</h3>
+  <table>
+    <tr><th>Method</th><th>Endpoint</th><th>Keterangan</th></tr>
+    <tr><td><span class="tag tag-get">GET</span></td><td><code>/posts/fyp</code></td><td>Feed For You (semua post)</td></tr>
+    <tr><td><span class="tag tag-get">GET</span></td><td><code>/posts/following</code></td><td>Feed dari akun yang diikuti</td></tr>
+    <tr><td><span class="tag tag-post">POST</span></td><td><code>/posts</code></td><td>Buat postingan baru</td></tr>
+    <tr><td><span class="tag tag-post">POST</span></td><td><code>/posts/with-poll</code></td><td>Buat postingan + poll</td></tr>
+    <tr><td><span class="tag tag-get">GET</span></td><td><code>/posts/:id</code></td><td>Detail satu postingan</td></tr>
+    <tr><td><span class="tag tag-post">POST</span></td><td><code>/posts/:id/like</code></td><td>Toggle like/unlike</td></tr>
+    <tr><td><span class="tag tag-post">POST</span></td><td><code>/posts/:id/reply</code></td><td>Balas postingan</td></tr>
+    <tr><td><span class="tag tag-get">GET</span></td><td><code>/posts/:id/replies</code></td><td>Ambil semua balasan</td></tr>
+    <tr><td><span class="tag tag-post">POST</span></td><td><code>/posts/:id/repost</code></td><td>Repost</td></tr>
+    <tr><td><span class="tag tag-post">POST</span></td><td><code>/posts/:id/bookmark</code></td><td>Toggle bookmark</td></tr>
+    <tr><td><span class="tag tag-post">POST</span></td><td><code>/posts/:id/pin</code></td><td>Toggle pin di profil</td></tr>
+    <tr><td><span class="tag tag-get">GET</span></td><td><code>/posts/bookmarks</code></td><td>Daftar postingan tersimpan</td></tr>
+    <tr><td><span class="tag tag-get">GET</span></td><td><code>/posts/anonymous</code></td><td>Feed channel anonim</td></tr>
+  </table>
+
+  <h3>User & Profile Endpoints</h3>
+  <table>
+    <tr><th>Method</th><th>Endpoint</th><th>Keterangan</th></tr>
+    <tr><td><span class="tag tag-get">GET</span></td><td><code>/users/:id</code></td><td>Profil user + postingan</td></tr>
+    <tr><td><span class="tag tag-get">GET</span></td><td><code>/users/by-username/:username</code></td><td>Cari user by username</td></tr>
+    <tr><td><span class="tag tag-put">PUT</span></td><td><code>/users/me/update</code></td><td>Edit profil (perlu old_password)</td></tr>
+    <tr><td><span class="tag tag-post">POST</span></td><td><code>/users/me/avatar</code></td><td>Upload foto profil</td></tr>
+    <tr><td><span class="tag tag-delete">DELETE</span></td><td><code>/users/me/delete</code></td><td>Hapus akun permanen</td></tr>
+    <tr><td><span class="tag tag-post">POST</span></td><td><code>/users/:id/follow</code></td><td>Toggle follow/unfollow</td></tr>
+    <tr><td><span class="tag tag-get">GET</span></td><td><code>/users/:id/pinned</code></td><td>Postingan yang dipin</td></tr>
+  </table>
+
+  <h3>DM, Story, Notifikasi, Konsultasi</h3>
+  <table>
+    <tr><th>Method</th><th>Endpoint</th><th>Keterangan</th></tr>
+    <tr><td><span class="tag tag-get">GET</span></td><td><code>/dm/conversations</code></td><td>Daftar percakapan</td></tr>
+    <tr><td><span class="tag tag-post">POST</span></td><td><code>/dm/conversations</code></td><td>Mulai percakapan baru</td></tr>
+    <tr><td><span class="tag tag-get">GET</span></td><td><code>/dm/conversations/:id/messages</code></td><td>Pesan dalam percakapan</td></tr>
+    <tr><td><span class="tag tag-post">POST</span></td><td><code>/dm/conversations/:id/messages</code></td><td>Kirim pesan (+ reply quote)</td></tr>
+    <tr><td><span class="tag tag-get">GET</span></td><td><code>/stories</code></td><td>Story aktif semua user</td></tr>
+    <tr><td><span class="tag tag-post">POST</span></td><td><code>/stories</code></td><td>Upload story baru</td></tr>
+    <tr><td><span class="tag tag-post">POST</span></td><td><code>/stories/:id/view</code></td><td>Tandai story sudah dilihat</td></tr>
+    <tr><td><span class="tag tag-get">GET</span></td><td><code>/notifications</code></td><td>Daftar notifikasi (filter by type)</td></tr>
+    <tr><td><span class="tag tag-get">GET</span></td><td><code>/notifications/unread-count</code></td><td>Jumlah notif & DM belum dibaca</td></tr>
+    <tr><td><span class="tag tag-post">POST</span></td><td><code>/notifications/read-all</code></td><td>Tandai semua dibaca</td></tr>
+    <tr><td><span class="tag tag-get">GET</span></td><td><code>/search</code></td><td>Cari postingan & user</td></tr>
+    <tr><td><span class="tag tag-get">GET</span></td><td><code>/search/trending</code></td><td>Postingan trending 7 hari</td></tr>
+    <tr><td><span class="tag tag-get">GET</span></td><td><code>/konsultasi/psikolog</code></td><td>Daftar psikolog</td></tr>
+    <tr><td><span class="tag tag-post">POST</span></td><td><code>/konsultasi/booking</code></td><td>Booking sesi konsultasi</td></tr>
+    <tr><td><span class="tag tag-get">GET</span></td><td><code>/konsultasi/sessions</code></td><td>Riwayat sesi user</td></tr>
+  </table>
+</div>
+
+<!-- ── 7. FITUR ── -->
+<div class="section" id="fitur">
+  <div class="section-header">
+    <span class="section-icon">✨</span>
+    <h2 class="section-title">7. Fitur Aplikasi</h2>
+  </div>
+
+  <div class="card-grid">
+    <div class="card"><div class="card-icon">🔐</div><h4>Verifikasi Gender ML</h4><p>XGBoost + PCA + OpenCV. Foto dianalisis real-time, perempuan → lanjut, laki-laki → ditolak.</p></div>
+    <div class="card"><div class="card-icon">📰</div><h4>Feed FYP & Following</h4><p>Dua tab feed: For You (semua postingan terbaru) dan Following (hanya akun yang diikuti).</p></div>
+    <div class="card"><div class="card-icon">🌸</div><h4>Story 24 Jam</h4><p>Upload foto/video yang expire otomatis. Dikelompokkan per username seperti Instagram.</p></div>
+    <div class="card"><div class="card-icon">📊</div><h4>Poll Interaktif</h4><p>Buat voting di postingan, max 4 pilihan, hasil persentase real-time setelah vote.</p></div>
+    <div class="card"><div class="card-icon">👤</div><h4>Mode Anonim</h4><p>Post tanpa identitas. Channel khusus anonim terpisah. Post anonim tidak tampil di profil publik.</p></div>
+    <div class="card"><div class="card-icon">💬</div><h4>DM + Reply Quote</h4><p>Chat 1-on-1 dengan polling 3 detik. Klik bubble pesan untuk reply dengan quote.</p></div>
+    <div class="card"><div class="card-icon">🧠</div><h4>Konsultasi Psikolog</h4><p>Daftar psikolog dengan rating & spesialisasi. Chat langsung atau booking sesi terjadwal.</p></div>
+    <div class="card"><div class="card-icon">🔔</div><h4>Notifikasi Real-time</h4><p>Like, reply, follow, repost. Filter per kategori. Titik merah otomatis di navbar.</p></div>
+    <div class="card"><div class="card-icon">📌</div><h4>Pin Postingan</h4><p>Pin satu postingan di bagian atas profil. Klik ikon 📍 di postingan milik sendiri.</p></div>
+    <div class="card"><div class="card-icon">🔖</div><h4>Bookmark</h4><p>Simpan postingan ke koleksi pribadi. Akses dari halaman Tersimpan di navbar.</p></div>
+    <div class="card"><div class="card-icon">🔍</div><h4>Explore & Trending</h4><p>Pencarian postingan & akun. Trending berdasarkan likes dalam 7 hari terakhir.</p></div>
+    <div class="card"><div class="card-icon">📱</div><h4>Responsive Mobile</h4><p>Bottom navbar 5 item + "Lainnya" sheet. Dioptimasi untuk layar 360px hingga desktop.</p></div>
+  </div>
+</div>
+
+<!-- ── 8. KEAMANAN ── -->
+<div class="section" id="keamanan">
+  <div class="section-header">
+    <span class="section-icon">🔒</span>
+    <h2 class="section-title">8. Keamanan & Privasi</h2>
+  </div>
+
+  <table>
+    <tr><th>Aspek</th><th>Implementasi</th></tr>
+    <tr><td>Password</td><td>Bcrypt hashing via <code>werkzeug.security</code></td></tr>
+    <tr><td>Autentikasi</td><td>JWT dengan expiry 12 jam</td></tr>
+    <tr><td>Otorisasi</td><td>Setiap endpoint protected dengan <code>@jwt_required()</code></td></tr>
+    <tr><td>CORS</td><td>Allow semua origin (development) — perlu dibatasi untuk production</td></tr>
+    <tr><td>File upload</td><td>Validasi extension whitelist (jpg/png/webp/mp4 dll), max 50MB</td></tr>
+    <tr><td>Postingan anonim</td><td>Author disembunyikan dari API response jika <code>is_anonymous=1</code></td></tr>
+    <tr><td>Profil privat</td><td>Postingan anonim hanya tampil di profil sendiri, bukan publik</td></tr>
+    <tr><td>Cascade delete</td><td>Hapus akun → hapus semua posts, likes, DM, notifikasi secara otomatis</td></tr>
+    <tr><td>Verifikasi perubahan</td><td>Edit profil wajib konfirmasi password lama</td></tr>
+  </table>
+
+  <div class="warn-box">
+    ⚠️ <strong>Catatan untuk production:</strong> Ganti <code>JWT_SECRET_KEY</code> dengan nilai acak yang kuat, batasi CORS hanya ke domain resmi, gunakan HTTPS, dan pertimbangkan migrasi ke PostgreSQL untuk skalabilitas.
+  </div>
+</div>
+
+<!-- ── 9. DEPLOYMENT ── -->
+<div class="section" id="deployment">
+  <div class="section-header">
+    <span class="section-icon">🚀</span>
+    <h2 class="section-title">9. Deployment</h2>
+  </div>
+
+  <h3>Setup Lokal</h3>
+  <pre><span class="comment"># 1. Install dependencies</span>
+pip install flask flask-jwt-extended werkzeug pillow \
+            xgboost opencv-python-headless scikit-learn joblib numpy
+
+<span class="comment"># 2. Jalankan backend (dari folder backend/)</span>
+cd backend
+python app.py
+<span class="comment"># → http://localhost:5000</span></pre>
+
+  <h3>Render.com (Production)</h3>
+  <table>
+    <tr><th>Setting</th><th>Value</th></tr>
+    <tr><td>URL</td><td><code>https://womenspace.onrender.com</code></td></tr>
+    <tr><td>Build command</td><td><code>pip install -r requirements.txt</code></td></tr>
+    <tr><td>Start command</td><td><code>python backend/app.py</code></td></tr>
+    <tr><td>Environment</td><td><code>JWT_SECRET_KEY=...</code></td></tr>
+  </table>
+
+  <h3>File Model yang Dibutuhkan</h3>
+  <ul>
+    <li><code>backend/gender_model.pkl</code> — XGBoost classifier</li>
+    <li><code>backend/pca_model.pkl</code> — PCA transformer</li>
+    <li><code>backend/haarcascade_frontalface_default.xml</code> — OpenCV cascade</li>
+    <li><code>backend/haarcascade_profileface.xml</code> — untuk wajah samping</li>
+  </ul>
+</div>
+
+<!-- ── 10. STRUKTUR FILE ── -->
+<div class="section" id="struktur-file">
+  <div class="section-header">
+    <span class="section-icon">📁</span>
+    <h2 class="section-title">10. Struktur File</h2>
+  </div>
+
+  <pre>SOFENGMLHCI/
+├── backend/
+│   ├── app.py                    <span class="comment"># Flask app utama (±1400 baris)</span>
+│   ├── gender_model.pkl          <span class="comment"># XGBoost model</span>
+│   ├── pca_model.pkl             <span class="comment"># PCA transformer</span>
+│   ├── haarcascade_*.xml         <span class="comment"># OpenCV cascades</span>
+│   ├── womenspace.db             <span class="comment"># SQLite database</span>
+│   ├── check_model.py            <span class="comment"># Script cek model</span>
+│   ├── cek_db.py                 <span class="comment"># Script cek database</span>
+│   ├── test_register.py          <span class="comment"># Script test registrasi</span>
+│   └── uploads/
+│       ├── media/                <span class="comment"># Foto/video postingan</span>
+│       ├── avatars/              <span class="comment"># Foto profil</span>
+│       ├── stories/              <span class="comment"># Media story</span>
+│       └── temp_faces/           <span class="comment"># Foto verifikasi (temp)</span>
+└── frontend/
+    ├── js/
+    │   └── api.js                <span class="comment"># Shared library (~490 baris)</span>
+    ├── index.html                <span class="comment"># Router</span>
+    ├── login.html
+    ├── register.html             <span class="comment"># 2-step + ML verify</span>
+    ├── home.html                 <span class="comment"># Feed + story + poll</span>
+    ├── search.html
+    ├── profile.html
+    ├── notifications.html
+    ├── dm.html                   <span class="comment"># Chat + reply quote</span>
+    ├── konsultasi.html
+    ├── bookmarks.html
+    ├── anonim.html
+    └── style.css                 <span class="comment"># Design system (~450 baris)</span></pre>
+</div>
+
+<div class="footer">
+  <strong>Womenspace</strong> · Platform Forum Eksklusif Perempuan dengan Verifikasi ML<br/>
+  Dokumentasi Teknis — Software Engineering · Machine Learning · HCI<br/>
+  <span style="color:var(--rose)">✿</span>
+</div>
+
+</div><!-- end container -->
+</body>
+</html>
