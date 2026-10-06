@@ -1,0 +1,8 @@
+.vscode/
+__pycache__/
+*.pyc
+
+backend/womenspace.db
+womenspace.db
+
+backend/uploads/
