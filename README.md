@@ -1,24 +1,26 @@
 # 🌸 Womenspace — Developer Guide
 
-Platform forum eksklusif perempuan dengan verifikasi ML.
+Exclusive forum platform for women with ML-based verification.
+
+[![Figma](https://img.shields.io/badge/Figma-000000?style=for-the-badge&logo=figma&logoColor=white)](https://www.figma.com/design/d0WK2Cz18eQnyeN6N8BgRU/AoL-Software-Engineering?node-id=629-11229&t=hhbW0i3qc5zABoNi-1)
 
 ---
 
-## 📁 Struktur Folder
+## 📁 Folder Structure
 
 ```
 womenspace/
 ├── backend/
-│   ├── app.py              ← Flask API utama (routing + DB)
-│   ├── womenspace.db       ← SQLite (auto-dibuat saat run)
-│   └── uploads/            ← folder file upload (auto-dibuat)
-│       ├── media/          ← foto/video/audio dari postingan
-│       └── temp_faces/     ← foto wajah saat registrasi
+│   ├── app.py              ← Main Flask API (routing + DB)
+│   ├── womenspace.db       ← SQLite (automatically created when running)
+│   └── uploads/            ← File upload folder (automatically created)
+│       ├── media/          ← Photos/videos/audio from posts
+│       └── temp_faces/     ← Face photos during registration
 │
 └── frontend/
     ├── index.html          ← Single Page App
-    ├── style.css           ← Semua styling
-    └── app.js              ← Semua logika JS + fetch API
+    ├── style.css           ← All styling
+    └── app.js              ← All JS logic + API fetch
 ```
 
 ---
@@ -34,55 +36,55 @@ likes (user_id, post_id, created_at)
 
 ---
 
-## ⚙️ Setup Backend
+## ⚙️ Backend Setup
 
-### 1. Install dependensi Python
+### 1. Install Python dependencies
 ```bash
 pip install flask flask-cors flask-jwt-extended werkzeug pillow
 ```
 
-### 2. Jalankan backend
+### 2. Run the backend
 ```bash
 cd backend
 python app.py
 ```
-Backend berjalan di: `http://localhost:5000`
+Backend runs at: `http://localhost:5000`
 
-Database `womenspace.db` otomatis dibuat saat pertama kali run.
+The `womenspace.db` database is automatically created on the first run.
 
 ---
 
-## 🌐 Setup Frontend
+## 🌐 Frontend Setup
 
-Buka `frontend/index.html` langsung di browser, atau serve dengan:
+Open `frontend/index.html` directly in your browser, or serve it with:
 ```bash
 cd frontend
 python -m http.server 8080
 ```
-Buka: `http://localhost:8080`
+Open: `http://localhost:8080`
 
-> **Pastikan CORS di Flask sudah aktif** (sudah dikonfigurasi di `app.py`).
+> **Make sure CORS is enabled in Flask** (already configured in `app.py`).
 
 ---
 
-## 🤖 Integrasi Model ML (PENTING)
+## 🤖 ML Model Integration (IMPORTANT)
 
-Model ML kamu dipanggil di endpoint `/api/auth/verify-face` dalam file `app.py`.
+Your ML model is called at the `/api/auth/verify-face` endpoint in `app.py`.
 
-Cari blok komentar `TODO: REPLACE THIS BLOCK` dan ganti dengan kode model kamu:
+Find the `TODO: REPLACE THIS BLOCK` comment block and replace it with your model code:
 
-### Opsi A — Model di file yang sama (import langsung)
+### Option A — Model in the same file (direct import)
 ```python
-# Di bagian atas app.py, tambahkan:
+# At the top of app.py, add:
 import your_ml_module as ml
 
-# Di dalam fungsi verify_face(), ganti stub dengan:
-result     = ml.predict_gender(tmp_path)   # path ke file gambar sementara
-gender     = result["gender"]              # "male" atau "female"
+# Inside the verify_face() function, replace the stub with:
+result     = ml.predict_gender(tmp_path)   # path to the temporary image file
+gender     = result["gender"]              # "male" or "female"
 confidence = result["confidence"]          # 0.0 – 1.0
 ```
 
-### Opsi B — Model sebagai microservice terpisah (FastAPI/Flask lain)
+### Option B — Model as a separate microservice (FastAPI/another Flask app)
 ```python
 import requests as req
 
@@ -92,7 +94,7 @@ gender     = res.json()["gender"]
 confidence = res.json()["confidence"]
 ```
 
-### Format output yang diharapkan dari model kamu:
+### Expected model output format:
 ```python
 {
   "gender"    : "female",   # atau "male"
@@ -102,7 +104,7 @@ confidence = res.json()["confidence"]
 
 ---
 
-## 🔌 Daftar API Endpoints
+## 🔌 API Endpoints
 
 | Method | Endpoint                     | Keterangan                          | Auth? |
 |--------|------------------------------|-------------------------------------|-------|
@@ -126,23 +128,23 @@ confidence = res.json()["confidence"]
 
 ---
 
-## 🔐 Autentikasi JWT
+## 🔐 JWT Authentication
 
-Setelah login/register, simpan `token` dari response.
-Kirim di setiap request sebagai header:
+After login/register, save the `token` from the response.
+Send it with every request as a header:
 ```
 Authorization: Bearer <token>
 ```
 
-Frontend sudah menangani ini secara otomatis via `localStorage`.
+The frontend handles this automatically via `localStorage`.
 
 ---
 
-## 📈 Langkah Selanjutnya (Roadmap)
+## 📈 Next Steps (Roadmap)
 
 - [ ] Deploy backend ke Railway / Render / VPS
-- [ ] Ganti SQLite → PostgreSQL untuk production
-- [ ] Tambah upload avatar di profil
-- [ ] Notifikasi real-time (WebSocket / SSE)
-- [ ] Rate limiting & input sanitization lebih ketat
-- [ ] HTTPS + environment variable untuk JWT secret
+- [ ] Replace SQLite → PostgreSQL for production
+- [ ] Add profile avatar uploads
+- [ ] Real-time notifications (WebSocket / SSE)
+- [ ] Rate limiting & stricter input sanitization
+- [ ] HTTPS + environment variable for the JWT secret
